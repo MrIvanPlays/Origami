@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Wed, 15 Jul 2020 21:25:15 +0300
+Subject: [PATCH] Origami config
+
+
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index 0653e0ffe96748dc971ec7e8027f8159696adf62..3817c1f7160f0a1cfe2fa3ff6b41bd82cd899c68 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -1438,6 +1438,14 @@ public interface Server extends PluginMessageRecipient {
+         }
+         // Paper end
+ 
++        // Origami start - add config to timings report
++        @NotNull
++        public org.bukkit.configuration.file.YamlConfiguration getOrigamiConfig()
++        {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
++        // Origami end
++
+         /**
+          * Sends the component to the player
+          *

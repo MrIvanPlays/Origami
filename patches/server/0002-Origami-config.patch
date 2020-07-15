@@ -1,0 +1,154 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Wed, 15 Jul 2020 21:25:37 +0300
+Subject: [PATCH] Origami config
+
+
+diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
+index e33e889c291d37a821a4fbd40d9aac7bb079de0d..4fbf236115c1f40b98fd7c96fe22b717bae5a265 100644
+--- a/src/main/java/co/aikar/timings/TimingsExport.java
++++ b/src/main/java/co/aikar/timings/TimingsExport.java
+@@ -229,7 +229,8 @@ public class TimingsExport extends Thread {
+         parent.put("config", createObject(
+             pair("spigot", mapAsJSON(Bukkit.spigot().getSpigotConfig(), null)),
+             pair("bukkit", mapAsJSON(Bukkit.spigot().getBukkitConfig(), null)),
+-            pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null))
++            pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Origami
++            pair("origami", mapAsJSON(Bukkit.spigot().getOrigamiConfig(), null)) // Origami
+         ));
+ 
+         new TimingsExport(listeners, parent, history).start();
+diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b6a4a8d4a7e1d97b65fbff1018c4dbc673afcd8f
+--- /dev/null
++++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+@@ -0,0 +1,76 @@
++package com.mrivanplays.origami;
++
++import com.destroystokyo.paper.util.SneakyThrow;
++
++import java.io.File;
++import java.io.IOException;
++import java.lang.reflect.Method;
++import java.lang.reflect.Modifier;
++import java.util.logging.Level;
++
++import org.bukkit.Bukkit;
++import org.bukkit.configuration.file.YamlConfiguration;
++
++public final class OrigamiConfig {
++
++    public static final String CONFIG_HEADER = "Configuration file for Origami.";
++    public static final int CURRENT_CONFIG_VERSION = 1;
++
++    private static final Object[] EMPTY = new Object[0];
++
++    private static File configFile;
++    public static YamlConfiguration config;
++    private static int configVersion;
++
++    public static void init(final File file) {
++        OrigamiConfig.configFile = file;
++        final YamlConfiguration config = new YamlConfiguration();
++        config.options().header(CONFIG_HEADER);
++        config.options().copyDefaults(true);
++
++        if (!file.exists()) {
++            try {
++                file.createNewFile();
++            } catch (IOException e) {
++                Bukkit.getLogger().log(Level.SEVERE, "Failed to create origami config", e);
++            }
++        } else {
++            try {
++                config.load(file);
++            } catch (Exception e) {
++                Bukkit.getLogger().log(Level.SEVERE, "Failed to load origami config", e);
++                SneakyThrow.sneaky(e);
++                throw new RuntimeException(e); // unreachable
++            }
++        }
++        load(config);
++    }
++
++    public static void load(final YamlConfiguration config) {
++        OrigamiConfig.config = config;
++        OrigamiConfig.configVersion = config.getInt("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION);
++        config.set("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION);
++
++        for (Method method : OrigamiConfig.class.getDeclaredMethods()) {
++            if (method.getReturnType() != void.class || method.getParameterCount() != 0 ||
++                    !Modifier.isPrivate(method.getModifiers()) || !Modifier.isStatic(method.getModifiers())) {
++                continue;
++            }
++
++            try {
++                method.setAccessible(true);
++                method.invoke(null, EMPTY);
++            } catch (Exception e) {
++                SneakyThrow.sneaky(e);
++                throw new RuntimeException(e); // unreachable
++            }
++        }
++
++        // re-save to add new options
++        try {
++            config.save(configFile);
++        } catch (IOException e) {
++            Bukkit.getLogger().log(Level.SEVERE, "Unable to save origami config", e);
++        }
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
+index 8b2755a3b95e472e884976195d1d3551fc260e39..760563751a33a91b1309f11bb4489a4122aa02bf 100644
+--- a/src/main/java/net/minecraft/server/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/DedicatedServer.java
+@@ -170,6 +170,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+         com.destroystokyo.paper.PaperConfig.registerCommands();
+         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
+         // Paper end
++        com.mrivanplays.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - server config
+ 
+         this.setPVP(dedicatedserverproperties.pvp);
+         this.setAllowFlight(dedicatedserverproperties.allowFlight);
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index d8103ab0d542ced4f30b88ceb4fc4c3eedd5d9a0..17ed181b5f6630efb4de59ecd1459b561f3506b4 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -848,6 +848,7 @@ public final class CraftServer implements Server {
+ 
+         org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
+         com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
++        com.mrivanplays.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
+         for (WorldServer world : console.getWorlds()) {
+             world.worldDataServer.setDifficulty(config.difficulty);
+             world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
+@@ -2231,6 +2232,9 @@ public final class CraftServer implements Server {
+             return com.destroystokyo.paper.PaperConfig.config;
+         }
+ 
++        @Override
++        public YamlConfiguration getOrigamiConfig() { return com.mrivanplays.origami.OrigamiConfig.config; } // Origami - add config to timings report
++
+         @Override
+         public void restart() {
+             org.spigotmc.RestartCommand.restart();
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index bac292e6d8e6cdb239d8accd21eaa25022f5640f..5398bbf7d9c7bf5a8f691ba9ba136a5eade38cec 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -146,6 +146,13 @@ public class Main {
+                         .defaultsTo("Unknown Server")
+                         .describedAs("Name");
+                 // Paper end
++                // Origami start - server config
++                acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
++                        .withRequiredArg()
++                        .ofType(File.class)
++                        .defaultsTo(new File("origami.yml"))
++                        .describedAs("Yml file");
++                // Origami end
+             }
+         };
+ 

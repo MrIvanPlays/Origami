@@ -1,0 +1,95 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Thu, 16 Jul 2020 14:17:01 +0300
+Subject: [PATCH] Build in a packet limiter
+
+The main reasoning behind is that most of the servers suffer due to packet spam which drops the TPS.
+
+diff --git a/src/main/java/com/mrivanplays/origami/util/PacketBucket.java b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..73c8396925cc055cfa98c6f30c65bf1dcba1658f
+--- /dev/null
++++ b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
+@@ -0,0 +1,52 @@
++package com.mrivanplays.origami.util;
++
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.Executors;
++import java.util.concurrent.ScheduledExecutorService;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.locks.Lock;
++import java.util.concurrent.locks.ReentrantLock;
++
++public class PacketBucket {
++
++    private final int maxPackets;
++    private final ScheduledExecutorService executor;
++    private final Lock lock = new ReentrantLock();
++    private final AtomicInteger packetsSent = new AtomicInteger(0);
++
++    public PacketBucket(int maxPackets) {
++        this.maxPackets = maxPackets;
++        executor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "PacketBucket Thread"));
++        executor.scheduleAtFixedRate(() -> {
++            lock.lock();
++            try {
++                packetsSent.set(0);
++            } finally {
++                lock.unlock();
++            }
++        }, 1, 1, TimeUnit.SECONDS);
++    }
++
++    public void increment() {
++        executor.execute(() -> {
++            lock.lock();
++            try {
++                packetsSent.incrementAndGet();
++            } finally {
++                lock.unlock();
++            }
++        });
++    }
++
++    public CompletableFuture<Boolean> violates() {
++        return CompletableFuture.supplyAsync(() -> {
++            lock.lock();
++            try {
++                return packetsSent.get() >= maxPackets;
++            } finally {
++                lock.unlock();
++            }
++        }, executor);
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/PacketDecoder.java b/src/main/java/net/minecraft/server/PacketDecoder.java
+index c0afb2a3c282ea7ab8c1d99b80843dc23b9f5252..9e3a71530b01259bb5e1b67374b5e79161577c39 100644
+--- a/src/main/java/net/minecraft/server/PacketDecoder.java
++++ b/src/main/java/net/minecraft/server/PacketDecoder.java
+@@ -16,12 +16,25 @@ public class PacketDecoder extends ByteToMessageDecoder {
+     private static final Marker b = MarkerManager.getMarker("PACKET_RECEIVED", NetworkManager.b);
+     private final EnumProtocolDirection c;
+ 
++    // Origami start
++    private com.mrivanplays.origami.util.PacketBucket bucket = new com.mrivanplays.origami.util.PacketBucket(500);
++    private boolean handlePacketLimit(ChannelHandlerContext ctx) {
++        bucket.increment();
++        if (bucket.violates().join()) {
++            ctx.close();
++            return true;
++        }
++        return false;
++    }
++    // Origami end
++
+     public PacketDecoder(EnumProtocolDirection enumprotocoldirection) {
+         this.c = enumprotocoldirection;
+     }
+ 
+     protected void decode(ChannelHandlerContext channelhandlercontext, ByteBuf bytebuf, List<Object> list) throws Exception {
+         if (bytebuf.readableBytes() != 0) {
++            if (handlePacketLimit(channelhandlercontext)) { return; } // Origami
+             PacketDataSerializer packetdataserializer = new PacketDataSerializer(bytebuf);
+             int i = packetdataserializer.i();
+             Packet<?> packet = ((EnumProtocol) channelhandlercontext.channel().attr(NetworkManager.c).get()).a(this.c, i);

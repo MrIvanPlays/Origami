@@ -1,0 +1,298 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Thu, 16 Jul 2020 13:16:48 +0300
+Subject: [PATCH] Optimize chunk tick iteration
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
+index 0692fe33bb7c4a7bb666920b10f5dd3a0e7a7689..12b88bd42b9d2e8af208e4e651185d50ac52902a 100644
+--- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
++++ b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
+@@ -296,6 +296,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+                     if (toTick.tickState == STATE_TICKING) {
+                         toTick.tickState = STATE_TICKED;
+                     } // else it's STATE_CANCELLED_TICK
++                    MinecraftServer.getServer().executeMidTickTasks(); // Origami
+                 } else {
+                     // re-schedule eventually
+                     toTick.tickState = STATE_SCHEDULED;
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index ef980f9859d1d7d0d5e13d0d70e998055f92135e..63378600f523b0bd41b7e3a3e3ea514b882f4592 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -734,7 +734,7 @@ public class ChunkProviderServer extends IChunkProvider {
+         this.world.getMethodProfiler().enter("purge");
+         this.world.timings.doChunkMap.startTiming(); // Spigot
+         this.chunkMapDistance.purgeTickets();
+-        this.world.getMinecraftServer().midTickLoadChunks(); // Paper
++        //this.world.getMinecraftServer().midTickLoadChunks(); // Paper // Origami
+         this.tickDistanceManager();
+         this.world.timings.doChunkMap.stopTiming(); // Spigot
+         this.world.getMethodProfiler().exitEnter("chunks");
+@@ -744,12 +744,18 @@ public class ChunkProviderServer extends IChunkProvider {
+         this.world.timings.doChunkUnload.startTiming(); // Spigot
+         this.world.getMethodProfiler().exitEnter("unload");
+         this.playerChunkMap.unloadChunks(booleansupplier);
+-        this.world.getMinecraftServer().midTickLoadChunks(); // Paper
++        //this.world.getMinecraftServer().midTickLoadChunks(); // Paper // Origami
+         this.world.timings.doChunkUnload.stopTiming(); // Spigot
+         this.world.getMethodProfiler().exit();
+         this.clearCache();
+     }
+ 
++    // Origami start
++    final com.destroystokyo.paper.util.maplist.ChunkList entityTickingChunks = new com.destroystokyo.paper.util.maplist.ChunkList();
++    boolean isTickingChunks = false;
++    final it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap<Chunk> pendingEntityTickingChunkChanges = new it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap<>(16, 0.8f);
++    // Origami end
++
+     private void tickChunks() {
+         long i = this.world.getTime();
+         long j = i - this.lastTickTime;
+@@ -820,19 +826,21 @@ public class ChunkProviderServer extends IChunkProvider {
+             //List<PlayerChunk> list = Lists.newArrayList(this.playerChunkMap.f()); // Paper
+             //Collections.shuffle(list); // Paper
+             // Paper - moved up
+-            final int[] chunksTicked = {0}; this.playerChunkMap.forEachVisibleChunk((playerchunk) -> { // Paper - safe iterator incase chunk loads, also no wrapping
+-                Optional<Chunk> optional = ((Either) playerchunk.a().getNow(PlayerChunk.UNLOADED_CHUNK)).left();
+-
+-                if (optional.isPresent()) {
++            // Origami start
++            this.isTickingChunks = true;
++            for (Chunk chunk : this.entityTickingChunks) {
++                PlayerChunk playerchunk = chunk.playerChunk;
++                if (playerchunk != null) {
++                    // Origami end
+                     this.world.getMethodProfiler().enter("broadcast");
+                     this.world.timings.broadcastChunkUpdates.startTiming(); // Paper - timings
+-                    playerchunk.a((Chunk) optional.get());
++                    playerchunk.a(chunk); // origami
+                     this.world.timings.broadcastChunkUpdates.stopTiming(); // Paper - timings
+                     this.world.getMethodProfiler().exit();
+-                    Optional<Chunk> optional1 = ((Either) playerchunk.b().getNow(PlayerChunk.UNLOADED_CHUNK)).left();
++                    // Optional<Chunk> optional1 = ((Either) playerchunk.b().getNow(PlayerChunk.UNLOADED_CHUNK)).left(); // Origami
+ 
+-                    if (optional1.isPresent()) {
+-                        Chunk chunk = (Chunk) optional1.get();
++                    if (true) { // Origami
++                        //Chunk chunk = (Chunk) optional1.get(); // Origami
+                         ChunkCoordIntPair chunkcoordintpair = playerchunk.i();
+ 
+                         if (!this.playerChunkMap.isOutsideOfRange(playerchunk, chunkcoordintpair, false)) { // Paper - optimise isOutsideOfRange
+@@ -844,11 +852,24 @@ public class ChunkProviderServer extends IChunkProvider {
+                             this.world.timings.chunkTicks.startTiming(); // Spigot // Paper
+                             this.world.a(chunk, k);
+                             this.world.timings.chunkTicks.stopTiming(); // Spigot // Paper
+-                            if (chunksTicked[0]++ % 10 == 0) this.world.getMinecraftServer().midTickLoadChunks(); // Paper
++                            MinecraftServer.getServer().executeMidTickTasks(); // Origami
+                         }
+                     }
+                 }
+-            });
++            } // Origami start
++            this.isTickingChunks = false;
++            if (!this.pendingEntityTickingChunkChanges.isEmpty()) {
++                for (it.unimi.dsi.fastutil.objects.ObjectIterator<it.unimi.dsi.fastutil.objects.Object2BooleanMap.Entry<Chunk>> iterator = this.pendingEntityTickingChunkChanges.object2BooleanEntrySet().fastIterator(); iterator.hasNext();) {
++                    it.unimi.dsi.fastutil.objects.Object2BooleanMap.Entry<Chunk> entry = iterator.next();
++                    if (entry.getBooleanValue()) {
++                        this.entityTickingChunks.add(entry.getKey());
++                    } else {
++                        this.entityTickingChunks.remove(entry.getKey());
++                    }
++                    iterator.remove();
++                }
++            }
++            // Origami end
+             this.world.getMethodProfiler().enter("customSpawners");
+             if (flag1) {
+                 try (co.aikar.timings.Timing ignored = this.world.timings.miscMobSpawning.startTiming()) { // Paper - timings
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 1ba1cbe5baf98280e67b04a816c543b3ea24d2a6..301f93427fbb936f23156c984a3c6eb8cefe5a9b 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -986,7 +986,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+                         // Paper end
+                         tickSection = curTime;
+                     }
+-                    midTickChunksTasksRan = 0; // Paper
++                    //midTickChunksTasksRan = 0; // Paper // Origami
+                     // Spigot end
+ 
+                     //MinecraftServer.currentTick = (int) (System.currentTimeMillis() / 50); // CraftBukkit // Paper - don't overwrite current tick time
+@@ -2266,4 +2266,74 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         }
+     }
+     // Paper end
++
++    // Origami start - execute chunk tasks mid tick
++    static final long CHUNK_TASK_QUEUE_BACKOFF_MIN_TIME = 25L * 1000L; // 25us
++    static final long MAX_CHUNK_EXEC_TIME = 1000L; // 1us
++
++    static final long TASK_EXECUTION_FAILURE_BACKOFF = 5L * 1000L; // 5us
++
++    private static long lastMidTickExecute;
++    private static long lastMidTickExecuteFailure;
++
++    private boolean tickMidTickTasks() {
++        // give all worlds a fair chance at by targetting them all.
++        // if we execute too many tasks, that's fine - we have logic to correctly handle overuse of allocated time.
++        boolean executed = false;
++        for (WorldServer world : this.getWorlds()) {
++            long currTime = System.nanoTime();
++            if (currTime - world.lastMidTickExecuteFailure <= TASK_EXECUTION_FAILURE_BACKOFF) {
++                continue;
++            }
++            if (!world.getChunkProvider().runTasks()) {
++                // we need to back off if this fails
++                world.lastMidTickExecuteFailure = currTime;
++            } else {
++                executed = true;
++            }
++        }
++
++        return executed;
++    }
++
++    public final void executeMidTickTasks() {
++        org.spigotmc.AsyncCatcher.catchOp("mid tick chunk task execution");
++        long startTime = System.nanoTime();
++        if ((startTime - lastMidTickExecute) <= CHUNK_TASK_QUEUE_BACKOFF_MIN_TIME || (startTime - lastMidTickExecuteFailure) <= TASK_EXECUTION_FAILURE_BACKOFF) {
++            // it's shown to be bad to constantly hit the queue (chunk loads slow to a crawl), even if no tasks are executed.
++            // so, backoff to prevent this
++            return;
++        }
++
++        co.aikar.timings.MinecraftTimings.midTickChunkTasks.startTiming();
++        try {
++            for (; ; ) {
++                boolean moreTasks = this.tickMidTickTasks();
++                long currTime = System.nanoTime();
++                long diff = currTime - startTime;
++
++                if (!moreTasks || diff >= MAX_CHUNK_EXEC_TIME) {
++                    if (!moreTasks) {
++                        lastMidTickExecuteFailure = currTime;
++                    }
++
++                    // note: negative values reduce the time
++                    long overuse = diff - MAX_CHUNK_EXEC_TIME;
++                    if (overuse >= (10L * 1000L * 1000L)) { // 10ms
++                        // make sure something like a GC or dumb plugin doesn't screw us over...
++                        overuse = 10L * 1000L * 1000L; // 10ms
++                    }
++
++                    double overuseCount = (double) overuse / (double) MAX_CHUNK_EXEC_TIME;
++                    long extraSleep = Math.round(overuseCount * CHUNK_TASK_QUEUE_BACKOFF_MIN_TIME);
++
++                    lastMidTickExecute = currTime + extraSleep;
++                    return;
++                }
++            }
++        } finally {
++            co.aikar.timings.MinecraftTimings.midTickChunkTasks.stopTiming();
++        }
++    }
++    // Origami end
+ }
+diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
+index a3bce8f13bf278af2d6870891daa9bf692b4e267..6cdf345a4e5d34df6102ea0d50dd97a1846c1b5e 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunk.java
++++ b/src/main/java/net/minecraft/server/PlayerChunk.java
+@@ -665,6 +665,15 @@ public class PlayerChunk {
+                     PlayerChunk.this.chunkMap.world.onChunkSetTicking(PlayerChunk.this.location.x, PlayerChunk.this.location.z);
+                     // Paper end - rewrite ticklistserver
+ 
++                    // Origami start - optimize chunk tick iteration
++                    ChunkProviderServer chunkProvider = PlayerChunk.this.chunkMap.world.getChunkProvider();
++                    if (chunkProvider.isTickingChunks) {
++                        chunkProvider.pendingEntityTickingChunkChanges.put(tickingChunk, true);
++                    } else {
++                        chunkProvider.entityTickingChunks.add(tickingChunk);
++                    }
++                    // Origami end
++
+                 }
+             });
+             // Paper end
+@@ -673,6 +682,16 @@ public class PlayerChunk {
+ 
+         if (flag4 && !flag5) {
+             this.tickingFuture.complete(PlayerChunk.UNLOADED_CHUNK); this.isTickingReady = false; // Paper - cache chunk ticking stage
++            // Origami start - opitimize chunk tick iteration
++            ChunkProviderServer chunkProvider = PlayerChunk.this.chunkMap.world.getChunkProvider();
++            Chunk chunk = this.getFullChunkIfCached();
++            if (chunk != null) {
++                if (chunkProvider.isTickingChunks) {
++                    chunkProvider.pendingEntityTickingChunkChanges.put(chunk, false);
++                } else {
++                    chunkProvider.entityTickingChunks.remove(chunk);
++                }
++            }
+             this.tickingFuture = PlayerChunk.UNLOADED_CHUNK_FUTURE;
+         }
+ 
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 5544254a655485b8ef9d2883da4d722fa57c63d9..3cc077a329b1af89ba4b66bf550f647a8b720e75 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -2024,15 +2024,25 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     private final void processTrackQueue() {
+         this.world.timings.tracker1.startTiming();
+         try {
+-            for (EntityTracker tracker : this.trackedEntities.values()) {
+-                // update tracker entry
+-                tracker.updatePlayers(tracker.tracker.getPlayersInTrackRange());
++            // Origami start - optimize chunk tick iteration
++            for (Chunk chunk : this.world.getChunkProvider().entityTickingChunks) {
++                Entity[] entities = chunk.entities.getRawData();
++                for (int i = 0, len = chunk.entities.size(); i < len; i++) {
++                    Entity entity = entities[i];
++                    EntityTracker tracker = this.trackedEntities.get(entity.getId());
++                    if (tracker != null) {
++                        tracker.updatePlayers(tracker.tracker.getPlayersInTrackRange());
++                        tracker.trackerEntry.tick();
++                    }
++                }
+             }
++            // Origami end
+         } finally {
+             this.world.timings.tracker1.stopTiming();
+         }
+ 
+ 
++        /* // Origami start - moved up
+         this.world.timings.tracker2.startTiming();
+         try {
+             for (EntityTracker tracker : this.trackedEntities.values()) {
+@@ -2041,6 +2051,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         } finally {
+             this.world.timings.tracker2.stopTiming();
+         }
++         */ // Origami end
+     }
+     // Paper end - optimised tracker
+ 
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 88ca677896f13e46a31411107f50a8c88c84c460..0883d21c05a16a199f205b7c19d3f3e2250c21d7 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -942,6 +942,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+             return;
+             // Paper end
+         }
++        MinecraftServer.getServer().executeMidTickTasks(); // Origami
+     }
+     // Paper start - Prevent armor stands from doing entity lookups
+     @Override
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 5ee9d3009e04b36d2c61007a1dbe06b2bb1106ff..c09324d277783ec2a72a9aaa75f0195a3de178a3 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -88,6 +88,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     private final EnderDragonBattle dragonBattle;
+     private final StructureManager structureManager;
+     private final boolean Q;
++    long lastMidTickExecuteFailure; // Origami
+ 
+ 
+     // CraftBukkit start

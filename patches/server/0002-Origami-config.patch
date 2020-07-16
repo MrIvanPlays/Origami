@@ -20,7 +20,7 @@ index e33e889c291d37a821a4fbd40d9aac7bb079de0d..4fbf236115c1f40b98fd7c96fe22b717
          new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b6a4a8d4a7e1d97b65fbff1018c4dbc673afcd8f
+index 0000000000000000000000000000000000000000..b3273e502170d3332cb49ae2536f3126f12262e4
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
 @@ -0,0 +1,76 @@

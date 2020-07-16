@@ -101,6 +101,9 @@ case "$1" in
             echo "You can now just type '$NAME' at any time to access the paper tool."
         fi
     ;;
+    "merge")
+        ./scripts/mergeUpstream.sh
+    ;;
     *)
         echo "Origami build tool command. This provides a variety of commands to build and manage the PaperMC build"
         echo "environment. For all of the functionality of this command to be available, you must first run the"

@@ -7,64 +7,91 @@ The main reasoning behind is that most of the servers suffer due to packet spam 
 
 diff --git a/src/main/java/com/mrivanplays/origami/util/PacketBucket.java b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..73c8396925cc055cfa98c6f30c65bf1dcba1658f
+index 0000000000000000000000000000000000000000..e5216c3f22245a5516ddd0ada0608a807f8d97f5
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,79 @@
 +package com.mrivanplays.origami.util;
 +
-+import java.util.concurrent.CompletableFuture;
-+import java.util.concurrent.Executors;
-+import java.util.concurrent.ScheduledExecutorService;
-+import java.util.concurrent.TimeUnit;
-+import java.util.concurrent.atomic.AtomicInteger;
-+import java.util.concurrent.locks.Lock;
-+import java.util.concurrent.locks.ReentrantLock;
++import java.util.Arrays;
 +
 +public class PacketBucket {
 +
-+    private final int maxPackets;
-+    private final ScheduledExecutorService executor;
-+    private final Lock lock = new ReentrantLock();
-+    private final AtomicInteger packetsSent = new AtomicInteger(0);
++    private static final double NANOSECONDS_TO_MILLISECONDS = 1.0e-6; // 1e3 / 1e9
 +
-+    public PacketBucket(int maxPackets) {
-+        this.maxPackets = maxPackets;
-+        executor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "PacketBucket Thread"));
-+        executor.scheduleAtFixedRate(() -> {
-+            lock.lock();
-+            try {
-+                packetsSent.set(0);
-+            } finally {
-+                lock.unlock();
-+            }
-+        }, 1, 1, TimeUnit.SECONDS);
++    private static final int MILLISECONDS_TO_SECONDS = 1000;
++    public final double intervalTime;
++    public final double intervalResolution;
++    public final int totalBuckets;
++    private final int[] data;
++    private int newestData;
++    private double lastBucketTime;
++    private int sum;
++
++    public PacketBucket(final double intervalTime, final int totalBuckets) {
++        this.intervalTime = intervalTime;
++        this.intervalResolution = intervalTime/(double)totalBuckets;
++        this.totalBuckets = totalBuckets;
++        this.data = new int[totalBuckets];
 +    }
 +
-+    public void increment() {
-+        executor.execute(() -> {
-+            lock.lock();
-+            try {
-+                packetsSent.incrementAndGet();
-+            } finally {
-+                lock.unlock();
-+            }
-+        });
++    public int incrementPackets(final int packets) {
++        return this.incrementPackets(System.nanoTime(), packets);
 +    }
 +
-+    public CompletableFuture<Boolean> violates() {
-+        return CompletableFuture.supplyAsync(() -> {
-+            lock.lock();
-+            try {
-+                return packetsSent.get() >= maxPackets;
-+            } finally {
-+                lock.unlock();
-+            }
-+        }, executor);
++    private int incrementPackets(final long currentTime, final int packets) {
++        final double timeMs = currentTime * NANOSECONDS_TO_MILLISECONDS;
++        double timeDelta = timeMs - this.lastBucketTime;
++
++        if (timeDelta < 0.0) {
++            timeDelta = 0.0;
++        }
++
++        if (timeDelta < this.intervalResolution) {
++            this.data[this.newestData] += packets;
++            return this.sum += packets;
++        }
++
++        final int bucketsToMove = (int)(timeDelta / this.intervalResolution);
++
++        final double nextBucketTime = this.lastBucketTime + bucketsToMove * this.intervalResolution;
++
++        if (bucketsToMove >= this.totalBuckets) {
++            Arrays.fill(this.data, 0);
++
++            this.data[0] = packets;
++            this.sum = packets;
++            this.newestData = 0;
++            this.lastBucketTime = timeMs;
++
++            return packets;
++        }
++
++        for (int i = 1; i < bucketsToMove; ++i) {
++            final int index = (this.newestData + i) % this.totalBuckets;
++            this.sum -= this.data[index];
++            this.data[index] = 0;
++        }
++
++        final int newestDataIndex = (this.newestData + bucketsToMove) % this.totalBuckets;
++        this.sum += packets - this.data[newestDataIndex]; // this.sum += packets; this.sum -= this.data[index]
++        this.data[newestDataIndex] = packets;
++        this.newestData = newestDataIndex;
++        this.lastBucketTime = nextBucketTime;
++
++        return this.sum;
++    }
++
++    public int getTotalPackets() {
++        return this.sum;
++    }
++
++    public double getCurrentPacketRate() {
++        return this.sum / (this.intervalTime / (double)MILLISECONDS_TO_SECONDS);
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/PacketDecoder.java b/src/main/java/net/minecraft/server/PacketDecoder.java
-index c0afb2a3c282ea7ab8c1d99b80843dc23b9f5252..9e3a71530b01259bb5e1b67374b5e79161577c39 100644
+index c0afb2a3c282ea7ab8c1d99b80843dc23b9f5252..be8ba74a8b4eb6b2ca0b50e305127d9d1127830e 100644
 --- a/src/main/java/net/minecraft/server/PacketDecoder.java
 +++ b/src/main/java/net/minecraft/server/PacketDecoder.java
 @@ -16,12 +16,25 @@ public class PacketDecoder extends ByteToMessageDecoder {
@@ -72,10 +99,10 @@ index c0afb2a3c282ea7ab8c1d99b80843dc23b9f5252..9e3a71530b01259bb5e1b67374b5e791
      private final EnumProtocolDirection c;
  
 +    // Origami start
-+    private com.mrivanplays.origami.util.PacketBucket bucket = new com.mrivanplays.origami.util.PacketBucket(500);
++    private com.mrivanplays.origami.util.PacketBucket bucket = new com.mrivanplays.origami.util.PacketBucket(7.0, 150);
 +    private boolean handlePacketLimit(ChannelHandlerContext ctx) {
-+        bucket.increment();
-+        if (bucket.violates().join()) {
++        bucket.incrementPackets(1);
++        if (bucket.getCurrentPacketRate() >= 500) {
 +            ctx.close();
 +            return true;
 +        }

@@ -7,7 +7,7 @@ The main reasoning behind is that most of the servers suffer due to packet spam 
 
 diff --git a/src/main/java/com/mrivanplays/origami/util/PacketBucket.java b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e5216c3f22245a5516ddd0ada0608a807f8d97f5
+index 0000000000000000000000000000000000000000..c8da2b4a83e3da4a41eb3ff96737764c3fad61cb
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
 @@ -0,0 +1,79 @@
@@ -91,19 +91,20 @@ index 0000000000000000000000000000000000000000..e5216c3f22245a5516ddd0ada0608a80
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/PacketDecoder.java b/src/main/java/net/minecraft/server/PacketDecoder.java
-index c0afb2a3c282ea7ab8c1d99b80843dc23b9f5252..be8ba74a8b4eb6b2ca0b50e305127d9d1127830e 100644
+index c0afb2a3c282ea7ab8c1d99b80843dc23b9f5252..42d8d9cb1e7525d662aaebd9d943312cc5bf1f66 100644
 --- a/src/main/java/net/minecraft/server/PacketDecoder.java
 +++ b/src/main/java/net/minecraft/server/PacketDecoder.java
-@@ -16,12 +16,25 @@ public class PacketDecoder extends ByteToMessageDecoder {
+@@ -16,12 +16,26 @@ public class PacketDecoder extends ByteToMessageDecoder {
      private static final Marker b = MarkerManager.getMarker("PACKET_RECEIVED", NetworkManager.b);
      private final EnumProtocolDirection c;
  
 +    // Origami start
-+    private com.mrivanplays.origami.util.PacketBucket bucket = new com.mrivanplays.origami.util.PacketBucket(7.0, 150);
++    private com.mrivanplays.origami.util.PacketBucket bucket = new com.mrivanplays.origami.util.PacketBucket(7000.0, 150);
 +    private boolean handlePacketLimit(ChannelHandlerContext ctx) {
-+        bucket.incrementPackets(1);
-+        if (bucket.getCurrentPacketRate() >= 500) {
++        int packets = bucket.incrementPackets(1);
++        if (bucket.getCurrentPacketRate() > 500) {
 +            ctx.close();
++            LOGGER.log(org.apache.logging.log4j.Level.WARN, "A player was kicked for sending too many packets! {} in the last {} seconds", packets, bucket.intervalTime / 1000.0);
 +            return true;
 +        }
 +        return false;

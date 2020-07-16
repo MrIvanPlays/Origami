@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Thu, 16 Jul 2020 16:12:15 +0300
+Subject: [PATCH] Don't tick movement if the living entity is dead
+
+And don't load chunks if the entity is dead. This fixes server lags
+
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index 9c4b02d776f8b99c6703c8dfc5d9fac0702bbe80..5194de77f5c1577523e5567f426b49f8e959c73d 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -1347,7 +1347,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+         this.pitch = MathHelper.a(f1, -90.0F, 90.0F) % 360.0F;
+         this.lastYaw = this.yaw;
+         this.lastPitch = this.pitch;
+-        if (valid) world.getChunkAt((int) Math.floor(this.locX()) >> 4, (int) Math.floor(this.locZ()) >> 4); // CraftBukkit // Paper
++        if (valid && !dead) world.getChunkAt((int) Math.floor(this.locX()) >> 4, (int) Math.floor(this.locZ()) >> 4); // CraftBukkit // Paper // Origami
+     }
+ 
+     public void c(Vec3D vec3d) {
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index c388999d104682b84b5f0936efce9d270247d08c..c386edac05bfae0ab07fbccc253e2bf747d9e027 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -2465,7 +2465,7 @@ public abstract class EntityLiving extends Entity {
+             }
+         }
+ 
+-        this.movementTick();
++        if (!dead) this.movementTick(); // Origami
+         double d0 = this.locX() - this.lastX;
+         double d1 = this.locZ() - this.lastZ;
+         float f = (float) (d0 * d0 + d1 * d1);

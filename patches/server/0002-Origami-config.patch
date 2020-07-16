@@ -20,10 +20,10 @@ index e33e889c291d37a821a4fbd40d9aac7bb079de0d..4fbf236115c1f40b98fd7c96fe22b717
          new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b3273e502170d3332cb49ae2536f3126f12262e4
+index 0000000000000000000000000000000000000000..e25df2b6bb06bb64d8c0def59785439a9fa1bef3
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,100 @@
 +package com.mrivanplays.origami;
 +
 +import com.destroystokyo.paper.util.SneakyThrow;
@@ -74,7 +74,7 @@ index 0000000000000000000000000000000000000000..b3273e502170d3332cb49ae2536f3126
 +
 +    public static void load(final YamlConfiguration config) {
 +        OrigamiConfig.config = config;
-+        OrigamiConfig.configVersion = config.getInt("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION);
++        OrigamiConfig.configVersion = getInt("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION);
 +        config.set("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION);
 +
 +        for (Method method : OrigamiConfig.class.getDeclaredMethods()) {
@@ -98,6 +98,30 @@ index 0000000000000000000000000000000000000000..b3273e502170d3332cb49ae2536f3126
 +        } catch (IOException e) {
 +            Bukkit.getLogger().log(Level.SEVERE, "Unable to save origami config", e);
 +        }
++    }
++
++    private static boolean getBoolean(String path, boolean def) {
++        config.addDefault(path, def);
++        return config.getBoolean(path, def);
++    }
++
++    private static String getString(String path, String def) {
++        config.addDefault(path, def);
++        return config.getString(path, def);
++    }
++
++    private static int getInt(String path, int def) {
++        config.addDefault(path, def);
++        return config.getInt(path, def);
++    }
++
++    private static double getDouble(String path, double def) {
++        config.addDefault(path, def);
++        return config.getDouble(path, def);
++    }
++
++    private static void log(String message) {
++        Bukkit.getLogger().info(message);
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java

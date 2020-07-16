@@ -1,0 +1,101 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Thu, 16 Jul 2020 15:57:21 +0300
+Subject: [PATCH] Alternative keepalive handling
+
+
+diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+index 111fa3cd586c31eb0ab9fd425179d1f54a40a0f4..192da93f0d01d9d9fe883759067d332177f71deb 100644
+--- a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
++++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+@@ -107,4 +107,14 @@ public final class OrigamiConfig {
+             log("Using vanilla redstone algorithm");
+         }
+     }
++
++    public static boolean alternativeKeepAliveHandling = false;
++    private static void alternativeKeepAliveHandling() {
++        alternativeKeepAliveHandling = getBoolean("alternative-keepalive-handling", alternativeKeepAliveHandling);
++        if (alternativeKeepAliveHandling) {
++            log("Using alternative Origami KeepAlive handling");
++        } else {
++            log("Using vanilla KeepAlive handling");
++        }
++    }
+ }
+diff --git a/src/main/java/net/minecraft/server/PacketPlayInKeepAlive.java b/src/main/java/net/minecraft/server/PacketPlayInKeepAlive.java
+index 8e93f1540ba5f995489c1fbcec70d10b011cd9c3..b7665fd239a9700e0b8ee9c2d992a99cff915153 100644
+--- a/src/main/java/net/minecraft/server/PacketPlayInKeepAlive.java
++++ b/src/main/java/net/minecraft/server/PacketPlayInKeepAlive.java
+@@ -22,6 +22,7 @@ public class PacketPlayInKeepAlive implements Packet<PacketListenerPlayIn> {
+         packetdataserializer.writeLong(this.a);
+     }
+ 
++    public long getId() { return b(); } // Origami - OBFHELPER
+     public long b() {
+         return this.a;
+     }
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index 95d57c6de95eca580ca4e3183db851e5a15de342..7b8569f8ff3ec6bca1d945d2376fedcfa7239d7d 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -69,6 +69,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+     private static final Logger LOGGER = LogManager.getLogger();
+     public final NetworkManager networkManager;
+     private final MinecraftServer minecraftServer;
++    private java.util.List<Long> keepAlives = new java.util.ArrayList<>(); // Origami
+     Runnable playerJoinReady; // Paper
+     public EntityPlayer player;
+     private int e;
+@@ -201,6 +202,19 @@ public class PlayerConnection implements PacketListenerPlayIn {
+         long currentTime = SystemUtils.getMonotonicMillis();
+         long elapsedTime = currentTime - this.getLastPing();
+ 
++        // Origami start
++        if (com.mrivanplays.origami.OrigamiConfig.alternativeKeepAliveHandling) {
++            if (elapsedTime >= 1000L) {
++                if (!processedDisconnect && keepAlives.size() > KEEPALIVE_LIMIT) {
++                    PlayerConnection.LOGGER.warn("{} was kicked due to keepalive timeout!", player.getName());
++                    disconnect(new ChatMessage("disconnect.timeout"));
++                } else {
++                    setLastPing(currentTime);
++                    keepAlives.add(currentTime);
++                    sendPacket(new PacketPlayOutKeepAlive(currentTime));
++                }
++            }
++        } else {
+         if (this.isPendingPing()) {
+             if (!this.processedDisconnect && elapsedTime >= KEEPALIVE_LIMIT) { // check keepalive limit, don't fire if already disconnected
+                 PlayerConnection.LOGGER.warn("{} was kicked due to keepalive timeout!", this.player.getName()); // more info
+@@ -214,6 +228,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                 this.sendPacket(new PacketPlayOutKeepAlive(this.getKeepAliveID()));
+             }
+         }
++        } // Origami end
+         // Paper end
+ 
+         this.minecraftServer.getMethodProfiler().exit();
+@@ -2697,6 +2712,15 @@ public class PlayerConnection implements PacketListenerPlayIn {
+ 
+     @Override
+     public void a(PacketPlayInKeepAlive packetplayinkeepalive) {
++        // Origami start
++        if (com.mrivanplays.origami.OrigamiConfig.alternativeKeepAliveHandling) {
++            long id = packetplayinkeepalive.getId();
++            if (keepAlives.size() > 0 && keepAlives.contains(id)) {
++                int ping = (int) (SystemUtils.getMonotonicMillis() - id);
++                player.ping = (player.ping * 3 + ping) / 4;
++                keepAlives.clear();
++            }
++        } else {
+         //PlayerConnectionUtils.ensureMainThread(packetplayinkeepalive, this, this.player.getWorldServer()); // CraftBukkit // Paper - This shouldn't be on the main thread
+         if (this.awaitingKeepAlive && packetplayinkeepalive.b() == this.h) {
+             int i = (int) (SystemUtils.getMonotonicMillis() - this.lastKeepAlive);
+@@ -2710,6 +2734,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+             });
+             // Paper end
+         }
++        } // Origami end
+ 
+     }
+ 

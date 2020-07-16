@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Thu, 16 Jul 2020 16:03:04 +0300
+Subject: [PATCH] Fix MC-4
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index f75c09d44a19f84588f21a55ea8f0dd8ccb539b9..d1b40f87607bf0373297df47781e7a980231e3eb 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -133,6 +133,10 @@ public class EntityTrackerEntry {
+                 double vec3d_dz = this.tracker.locZ() - 2.44140625E-4D*(this.zLoc);
+                 boolean flag1 = (vec3d_dx * vec3d_dx + vec3d_dy * vec3d_dy + vec3d_dz * vec3d_dz) >= 7.62939453125E-6D;
+                 // Paper end - reduce allocation of Vec3D here
++                // Origami start - fix MC-4
++                Vec3D loc = PacketPlayOutEntity.decrypt(PacketPlayOutEntity.encrypt(tracker.locX()), PacketPlayOutEntity.encrypt(tracker.locY()), PacketPlayOutEntity.encrypt(tracker.locZ()));
++                tracker.setPosition(loc.getX(), loc.getY(), loc.getZ());
++                // Origami end
+                 Packet<?> packet1 = null;
+                 boolean flag2 = flag1 || this.tickCounter % 60 == 0;
+                 boolean flag3 = Math.abs(i - this.yRot) >= 1 || Math.abs(j - this.xRot) >= 1;
+diff --git a/src/main/java/net/minecraft/server/PacketPlayOutEntity.java b/src/main/java/net/minecraft/server/PacketPlayOutEntity.java
+index e5da2b19c1177ba7f88f0aaad9d810bb313ce67b..4b929574755389f003467f7c5d4f3649b2af158b 100644
+--- a/src/main/java/net/minecraft/server/PacketPlayOutEntity.java
++++ b/src/main/java/net/minecraft/server/PacketPlayOutEntity.java
+@@ -14,10 +14,12 @@ public class PacketPlayOutEntity implements Packet<PacketListenerPlayOut> {
+     protected boolean h;
+     protected boolean i;
+ 
++    public static long encrypt(double d) { return a(d); } // Origami - OBFHELPER
+     public static long a(double d0) {
+         return MathHelper.d(d0 * 4096.0D);
+     }
+ 
++    public static Vec3D decrypt(long x, long y, long z) { return a(x, y, z); } // Origami - OBFHELPER
+     public static Vec3D a(long i, long j, long k) {
+         return (new Vec3D((double) i, (double) j, (double) k)).a(2.44140625E-4D);
+     }

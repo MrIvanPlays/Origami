@@ -52,7 +52,7 @@ index b3273e502170d3332cb49ae2536f3126f12262e4..829ac723883f8d462ad8d3f69898ec1d
  }
 diff --git a/src/main/java/com/mrivanplays/origami/util/RedstoneWireTurbo.java b/src/main/java/com/mrivanplays/origami/util/RedstoneWireTurbo.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1a54203feb05db84da5a6f979c8d06cf048a30be
+index 0000000000000000000000000000000000000000..5829ef89d2065d4bc80301f27e4efd50f6d2d53c
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/util/RedstoneWireTurbo.java
 @@ -0,0 +1,913 @@

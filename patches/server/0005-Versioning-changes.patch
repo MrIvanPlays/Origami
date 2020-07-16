@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Thu, 16 Jul 2020 10:25:31 +0300
+Subject: [PATCH] Versioning changes
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
+index 49a38c6608b652ff48ef4eaca0dd3ccb1ba570e3..7f199fe418746ca4de946b5a3bd0d682e04d3637 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
++++ b/src/main/java/com/destroystokyo/paper/PaperVersionFetcher.java
+@@ -24,8 +24,8 @@ public class PaperVersionFetcher implements VersionFetcher {
+     @Nonnull
+     @Override
+     public String getVersionMessage(@Nonnull String serverVersion) {
+-        String[] parts = serverVersion.substring("git-Paper-".length()).split("[-\\s]");
+-        String updateMessage = getUpdateStatusMessage("PaperMC/Paper", GITHUB_BRANCH_NAME, parts[0]);
++        String[] parts = serverVersion.substring("git-Origami-".length()).split("[-\\s]"); // Origami
++        String updateMessage = getUpdateStatusMessage("MrIvanPlays/Origami", GITHUB_BRANCH_NAME, parts[0]); // Origami
+         String history = getHistory();
+ 
+         return history != null ? history + "\n" + updateMessage : updateMessage;
+@@ -73,11 +73,11 @@ public class PaperVersionFetcher implements VersionFetcher {
+         if (siteApiVersion == null) { return -1; }
+         try {
+             try (BufferedReader reader = Resources.asCharSource(
+-                new URL("https://papermc.io/api/v1/paper/" + siteApiVersion + "/latest"),
++                new URL("https://ci.mrivanplays.com/job/Origami/api/json"), // Origami
+                 Charsets.UTF_8
+             ).openBufferedStream()) {
+                 JsonObject json = new Gson().fromJson(reader, JsonObject.class);
+-                int latest = json.get("build").getAsInt();
++                int latest = json.get("builds").getAsJsonArray().get(0).getAsJsonObject().get("number").getAsInt(); // Origami
+                 return latest - jenkinsBuild;
+             } catch (JsonSyntaxException ex) {
+                 ex.printStackTrace();

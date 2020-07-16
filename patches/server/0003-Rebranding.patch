@@ -44,7 +44,7 @@ index 17ed181b5f6630efb4de59ecd1459b561f3506b4..12fdaa1790985e022c06f5e8dc913f58
      private final String bukkitVersion = Versioning.getBukkitVersion();
      private final Logger logger = Logger.getLogger("Minecraft");
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 5398bbf7d9c7bf5a8f691ba9ba136a5eade38cec..b8f583a8f57898ced3214c13aec35a0d643191ca 100644
+index 5398bbf7d9c7bf5a8f691ba9ba136a5eade38cec..b30ced5b53edbc1d3d4dc4bab0ffef1ba024cfab 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -259,7 +259,7 @@ public class Main {
@@ -52,7 +52,7 @@ index 5398bbf7d9c7bf5a8f691ba9ba136a5eade38cec..b8f583a8f57898ced3214c13aec35a0d
                          // Paper start - This is some stupid bullshit
                          System.err.println("*** Warning, you've not updated in a while! ***");
 -                        System.err.println("*** Please download a new build as per instructions from https://papermc.io/downloads ***"); // Paper
-+                        System.err.println("*** Please download a new build ***"); // Paper // Origami - CI soon :P
++                        System.err.println("*** Please download a new build as per instructions from https://ci.mrivanplays.com/job/Origami/ ***"); // Paper // Origami
                          //System.err.println("*** Server will start in 20 seconds ***");
                          //Thread.sleep(TimeUnit.SECONDS.toMillis(20));
                          // Paper End

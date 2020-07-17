@@ -1,0 +1,143 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Fri, 17 Jul 2020 13:27:20 +0300
+Subject: [PATCH] Optimize Pathfinder
+
+Streams removed, maps & sets replaced with lists.
+Should help with memory consumption and tick speeds.
+
+diff --git a/src/main/java/net/minecraft/server/Pathfinder.java b/src/main/java/net/minecraft/server/Pathfinder.java
+index b31d1f73ce0f067e352868b53eab7557c34b17eb..7d5223b683e0ce7eaad24b49ffa50e9b19fde785 100644
+--- a/src/main/java/net/minecraft/server/Pathfinder.java
++++ b/src/main/java/net/minecraft/server/Pathfinder.java
+@@ -11,6 +11,7 @@ import java.util.Optional;
+ import java.util.Set;
+ import java.util.function.Function;
+ import java.util.stream.Collectors;
++import java.util.stream.Stream;
+ import javax.annotation.Nullable;
+ 
+ public class Pathfinder {
+@@ -30,9 +31,12 @@ public class Pathfinder {
+         this.d.a();
+         this.c.a(chunkcache, entityinsentient);
+         PathPoint pathpoint = this.c.b();
+-        Map<PathDestination, BlockPosition> map = (Map) set.stream().collect(Collectors.toMap((blockposition) -> {
+-            return this.c.a((double) blockposition.getX(), (double) blockposition.getY(), (double) blockposition.getZ());
+-        }, Function.identity()));
++        // Origami start - replace stream
++        List<Map.Entry<PathDestination, BlockPosition>> map = Lists.newArrayList();
++        for (BlockPosition blockposition : set) {
++            map.add(new java.util.HashMap.SimpleEntry<>(this.c.getGoal(blockposition.getX(), blockposition.getY(), blockposition.getZ()), blockposition));
++        }
++        // Origami end
+         PathEntity pathentity = this.a(pathpoint, map, f, i, f1);
+ 
+         this.c.a();
+@@ -40,17 +44,17 @@ public class Pathfinder {
+     }
+ 
+     @Nullable
+-    private PathEntity a(PathPoint pathpoint, Map<PathDestination, BlockPosition> map, float f, int i, float f1) {
+-        Set<PathDestination> set = map.keySet();
++    private PathEntity a(PathPoint pathpoint, List<Map.Entry<PathDestination, BlockPosition>> list, float f, int i, float f1) { // Origami
++        //Set<PathDestination> set = map.keySet(); // Origami
+ 
+         pathpoint.e = 0.0F;
+-        pathpoint.f = this.a(pathpoint, set);
++        pathpoint.f = this.a(pathpoint, list); // Origami
+         pathpoint.g = pathpoint.f;
+         this.d.a();
+         this.d.a(pathpoint);
+-        Set<PathPoint> set1 = ImmutableSet.of();
++        //Set<PathPoint> set1 = ImmutableSet.of(); // Origami
+         int j = 0;
+-        Set<PathDestination> set2 = Sets.newHashSetWithExpectedSize(set.size());
++        List<PathDestination> set2 = Lists.newArrayListWithExpectedSize(list.size()); // Origami
+         int k = (int) ((float) this.b * f1);
+ 
+         while (!this.d.e()) {
+@@ -62,10 +66,11 @@ public class Pathfinder {
+             PathPoint pathpoint1 = this.d.c();
+ 
+             pathpoint1.i = true;
+-            Iterator iterator = set.iterator();
+ 
+-            while (iterator.hasNext()) {
+-                PathDestination pathdestination = (PathDestination) iterator.next();
++            // Origami start
++            for (Map.Entry<PathDestination, BlockPosition> pathDestinationBlockPositionEntry : list) {
++                PathDestination pathdestination = pathDestinationBlockPositionEntry.getKey();
++                // Origami end
+ 
+                 if (pathpoint1.c((PathPoint) pathdestination) <= (float) i) {
+                     pathdestination.e();
+@@ -90,7 +95,7 @@ public class Pathfinder {
+                     if (pathpoint2.j < f && (!pathpoint2.c() || f3 < pathpoint2.e)) {
+                         pathpoint2.h = pathpoint1;
+                         pathpoint2.e = f3;
+-                        pathpoint2.f = this.a(pathpoint2, set) * 1.5F;
++                        pathpoint2.f = this.a(pathpoint2, list) * 1.5F; // Origami
+                         if (pathpoint2.c()) {
+                             this.d.a(pathpoint2, pathpoint2.e + pathpoint2.f);
+                         } else {
+@@ -102,28 +107,33 @@ public class Pathfinder {
+             }
+         }
+ 
+-        Optional<PathEntity> optional = !set2.isEmpty() ? set2.stream().map((pathdestination1) -> {
+-            return this.a(pathdestination1.d(), (BlockPosition) map.get(pathdestination1), true);
+-        }).min(Comparator.comparingInt(PathEntity::e)) : set.stream().map((pathdestination1) -> {
+-            return this.a(pathdestination1.d(), (BlockPosition) map.get(pathdestination1), false);
+-        }).min(Comparator.comparingDouble(PathEntity::n).thenComparingInt(PathEntity::e));
+-
+-        if (!optional.isPresent()) {
+-            return null;
++        // Origami start
++        PathEntity best = null;boolean seen = false;
++        if (!set2.isEmpty()) {
++            Comparator<PathEntity> comparator = Comparator.comparingInt(PathEntity::e);
++            for (int i1 = 0, listSize = set2.size(); i1 < listSize; i1++) {
++                Map.Entry<PathDestination, BlockPosition> entry = list.get(i1);PathDestination pathdestination = set2.get(i1);
++                PathEntity entity = this.a(pathdestination.d(), entry.getValue(), true);
++                if (!seen || comparator.compare(entity, best) < 0) { best = entity; seen = true; } }
+         } else {
+-            PathEntity pathentity = (PathEntity) optional.get();
+-
+-            return pathentity;
++            Comparator<PathEntity> comparator = Comparator.comparingDouble(PathEntity::n).thenComparingInt(PathEntity::e);
++            for (Map.Entry<PathDestination, BlockPosition> entry : list) {
++                PathEntity entity = this.a(entry.getKey().d(), entry.getValue(), false);
++                if (!seen || comparator.compare(entity, best) < 0) { best = entity; seen = true; } }
+         }
++        return best;
++        // Origami end
+     }
+ 
+-    private float a(PathPoint pathpoint, Set<PathDestination> set) {
++    private float a(PathPoint pathpoint, List<Map.Entry<PathDestination, BlockPosition>> set) { // Origami
+         float f = Float.MAX_VALUE;
+ 
+         float f1;
+ 
+-        for (Iterator iterator = set.iterator(); iterator.hasNext(); f = Math.min(f1, f)) {
+-            PathDestination pathdestination = (PathDestination) iterator.next();
++        // Origami start
++        for (int i = 0, listSize = set.size(); i < listSize; f = Math.min(f1, f), i++) {
++            PathDestination pathdestination = set.get(i).getKey();
++            // Origami end
+ 
+             f1 = pathpoint.a(pathdestination);
+             pathdestination.a(f1, pathpoint);
+diff --git a/src/main/java/net/minecraft/server/PathfinderAbstract.java b/src/main/java/net/minecraft/server/PathfinderAbstract.java
+index 5cfcac3bc29e3f3d139b10209f5082cba292a434..defea2cf2959e3581dc590b5b4e5f6f911367f9a 100644
+--- a/src/main/java/net/minecraft/server/PathfinderAbstract.java
++++ b/src/main/java/net/minecraft/server/PathfinderAbstract.java
+@@ -43,6 +43,7 @@ public abstract class PathfinderAbstract {
+ 
+     public abstract PathPoint b();
+ 
++    public PathDestination getGoal(double x, double y, double z) { return a(x, y, z); } // Origami - OBFHELPER
+     public abstract PathDestination a(double d0, double d1, double d2);
+ 
+     public abstract int a(PathPoint[] apathpoint, PathPoint pathpoint);

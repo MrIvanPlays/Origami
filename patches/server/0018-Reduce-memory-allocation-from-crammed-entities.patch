@@ -6,7 +6,7 @@ Subject: [PATCH] Reduce memory allocation from crammed entities
 
 diff --git a/src/main/java/com/mrivanplays/origami/CachedLists.java b/src/main/java/com/mrivanplays/origami/CachedLists.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..5378723526438139bcb21346c3673baf074e4369
+index 0000000000000000000000000000000000000000..3e4538260ba0cba5443a3556481a5e52a6abc148
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/CachedLists.java
 @@ -0,0 +1,30 @@

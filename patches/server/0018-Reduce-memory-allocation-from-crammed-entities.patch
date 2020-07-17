@@ -1,0 +1,126 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Fri, 17 Jul 2020 15:49:08 +0300
+Subject: [PATCH] Reduce memory allocation from crammed entities
+
+
+diff --git a/src/main/java/com/mrivanplays/origami/CachedLists.java b/src/main/java/com/mrivanplays/origami/CachedLists.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5378723526438139bcb21346c3673baf074e4369
+--- /dev/null
++++ b/src/main/java/com/mrivanplays/origami/CachedLists.java
+@@ -0,0 +1,30 @@
++package com.mrivanplays.origami;
++
++import net.minecraft.server.Entity;
++
++import java.util.List;
++
++import org.bukkit.Bukkit;
++import org.bukkit.craftbukkit.util.UnsafeList;
++
++public class CachedLists {
++
++    static final UnsafeList<Entity> TEMP_GET_ENTITIES_LIST = new UnsafeList<>(1024);
++    static boolean tempGetEntitiesListInUse;
++
++    public static List<Entity> getTempGetEntitiesList() {
++        if (!Bukkit.isPrimaryThread() || tempGetEntitiesListInUse) {
++            return new UnsafeList<>(16);
++        }
++        tempGetEntitiesListInUse = true;
++        return TEMP_GET_ENTITIES_LIST;
++    }
++
++    public static void returnTempGetEntitiesList(List<Entity> entityList) {
++        if (entityList != TEMP_GET_ENTITIES_LIST) {
++            return;
++        }
++        ((UnsafeList) entityList).setSize(0);
++        tempGetEntitiesListInUse = false;
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index c386edac05bfae0ab07fbccc253e2bf747d9e027..3db2dab5e44cb4b8ca23b2b989137f1b1003180d 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -2835,7 +2835,10 @@ public abstract class EntityLiving extends Entity {
+             return;
+         }
+         // Paper - end don't run getEntities if we're not going to use its result
+-        List<Entity> list = this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this));
++        // Origami start - reduce memory allocation from collideNearby
++        List<Entity> list = com.mrivanplays.origami.CachedLists.getTempGetEntitiesList();
++        this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this), list);
++        try { // Origami end
+ 
+         if (!list.isEmpty()) {
+             // Paper - move up
+@@ -2864,7 +2867,9 @@ public abstract class EntityLiving extends Entity {
+                 this.C(entity);
+             }
+         }
+-
++        } finally { // Origami start
++            com.mrivanplays.origami.CachedLists.returnTempGetEntitiesList(list);
++        } // Origami end
+     }
+ 
+     protected void a(AxisAlignedBB axisalignedbb, AxisAlignedBB axisalignedbb1) {
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 0883d21c05a16a199f205b7c19d3f3e2250c21d7..87aec3ebc9fccafc482190b66b26860bae8a23f9 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -1150,8 +1150,13 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+ 
+     @Override
+     public List<Entity> getEntities(@Nullable Entity entity, AxisAlignedBB axisalignedbb, @Nullable Predicate<? super Entity> predicate) {
+-        this.getMethodProfiler().c("getEntities");
++        // Origami start - add with list parameter
+         List<Entity> list = Lists.newArrayList();
++        return getEntities(entity, axisalignedbb, predicate, list);
++    }
++    public List<Entity> getEntities(@Nullable Entity entity, AxisAlignedBB axisalignedbb, @Nullable Predicate<? super Entity> predicate, List<Entity> list) {
++        this.getMethodProfiler().c("getEntities");
++        // Origami end
+         int i = MathHelper.floor((axisalignedbb.minX - 2.0D) / 16.0D);
+         int j = MathHelper.floor((axisalignedbb.maxX + 2.0D) / 16.0D);
+         int k = MathHelper.floor((axisalignedbb.minZ - 2.0D) / 16.0D);
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/UnsafeList.java b/src/main/java/org/bukkit/craftbukkit/util/UnsafeList.java
+index f72c13bedaa6fa45e26f5dcad564835bdd4af61f..7e3ca3fa9e0ba2e7ef9a0138d824188421e36021 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/UnsafeList.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/UnsafeList.java
+@@ -119,6 +119,33 @@ public class UnsafeList<E> extends AbstractList<E> implements List<E>, RandomAcc
+         return indexOf(o) >= 0;
+     }
+ 
++    // Origami start
++    protected transient int maxSize;
++
++    public void setSize(int size) {
++        if (this.maxSize < this.size) {
++            this.maxSize = this.size;
++        }
++        this.size = size;
++    }
++
++    public void completeReset() {
++        if (this.data != null) {
++            Arrays.fill(this.data, 0, Math.max(this.size, this.maxSize), null);
++        }
++        this.size = 0;
++        this.maxSize = 0;
++        if (this.iterPool != null) {
++            for (Iterator temp : this.iterPool) {
++                if (temp == null) {
++                    continue;
++                }
++                ((Itr) temp).valid = false;
++            }
++        }
++    }
++    // Origami end
++
+     @Override
+     public void clear() {
+         // Create new array to reset memory usage to initial capacity

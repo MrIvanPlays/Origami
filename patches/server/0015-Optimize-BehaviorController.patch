@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize BehaviorController
 
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorController.java b/src/main/java/net/minecraft/server/BehaviorController.java
-index ae2905b403a63396d9cdc61444586ea5548f2974..0cedab10ea7d6564d8f87fa9784bf9aaca8ce7d3 100644
+index ae2905b403a63396d9cdc61444586ea5548f2974..970cb5ad68cdcc0555d7d87a4a3d7a14709f3de3 100644
 --- a/src/main/java/net/minecraft/server/BehaviorController.java
 +++ b/src/main/java/net/minecraft/server/BehaviorController.java
 @@ -53,13 +53,14 @@ public class BehaviorController<E extends EntityLiving> {
@@ -71,12 +71,8 @@ index ae2905b403a63396d9cdc61444586ea5548f2974..0cedab10ea7d6564d8f87fa9784bf9aa
                  return recordbuilder;
              }
          }).fieldOf("memories").codec());
-@@ -155,9 +150,18 @@ public class BehaviorController<E extends EntityLiving> {
-     }
- 
-     public <T> DataResult<T> a(DynamicOps<T> dynamicops) {
--        return ((Codec) this.b.get()).encodeStart(dynamicops, this);
-+        return this.b.get().encodeStart(dynamicops, this); // Origami - decompile fix
+@@ -158,6 +153,15 @@ public class BehaviorController<E extends EntityLiving> {
+         return ((Codec) this.b.get()).encodeStart(dynamicops, this);
      }
  
 +    // Origami start
@@ -100,15 +96,6 @@ index ae2905b403a63396d9cdc61444586ea5548f2974..0cedab10ea7d6564d8f87fa9784bf9aa
      }
  
      public <U> boolean b(MemoryModuleType<U> memorymoduletype, U u0) {
-@@ -206,7 +210,7 @@ public class BehaviorController<E extends EntityLiving> {
-     }
- 
-     public boolean a(MemoryModuleType<?> memorymoduletype, MemoryStatus memorystatus) {
--        Optional<? extends ExpirableMemory<?>> optional = (Optional) this.memories.get(memorymoduletype);
-+        Optional<? extends ExpirableMemory<?>> optional = this.memories.get(memorymoduletype); // Origami - decompile fix
- 
-         return optional == null ? false : memorystatus == MemoryStatus.REGISTERED || memorystatus == MemoryStatus.VALUE_PRESENT && optional.isPresent() || memorystatus == MemoryStatus.VALUE_ABSENT && !optional.isPresent();
-     }
 @@ -535,7 +539,7 @@ public class BehaviorController<E extends EntityLiving> {
          private final MemoryModuleType<U> a;
          private final Optional<? extends ExpirableMemory<U>> b;

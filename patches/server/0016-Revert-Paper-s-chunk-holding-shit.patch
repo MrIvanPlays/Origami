@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Fri, 17 Jul 2020 14:58:55 +0300
+Subject: [PATCH] Revert Paper's chunk holding shit
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+index 65b36a17418ae64b6166704b3d0ecf97df1e9445..500b5213a9e51c4d0a1a328a047fcdc45c053e8e 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+@@ -402,13 +402,16 @@ public class CraftWorld implements World {
+ 
+     @Override
+     public Chunk getChunkAt(int x, int z) {
++        /* // Origami - no hold 4 u
+         // Paper start - add ticket to hold chunk for a little while longer if plugin accesses it
+         net.minecraft.server.Chunk chunk = world.getChunkProvider().getChunkAtIfLoadedImmediately(x, z);
+         if (chunk == null) {
+             addTicket(x, z);
+             chunk = this.world.getChunkProvider().getChunkAt(x, z, true);
+         }
+-        return chunk.bukkitChunk;
++         */
++        return world.getChunkProvider().getChunkAt(x, z, true).bukkitChunk;
++        // Origami end
+         // Paper end
+     }
+ 
+@@ -2541,7 +2544,7 @@ public class CraftWorld implements World {
+         }
+         return this.world.getChunkProvider().getChunkAtAsynchronously(x, z, gen, urgent).thenComposeAsync((either) -> {
+             net.minecraft.server.Chunk chunk = (net.minecraft.server.Chunk) either.left().orElse(null);
+-            if (chunk != null) addTicket(x, z); // Paper
++            if (false && chunk != null) addTicket(x, z); // Paper // Origami
+             return CompletableFuture.completedFuture(chunk == null ? null : chunk.getBukkitChunk());
+         }, MinecraftServer.getServer());
+     }

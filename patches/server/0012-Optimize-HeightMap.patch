@@ -1,0 +1,117 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Fri, 17 Jul 2020 09:34:19 +0300
+Subject: [PATCH] Optimize HeightMap
+
+
+diff --git a/src/main/java/net/minecraft/server/DataBits.java b/src/main/java/net/minecraft/server/DataBits.java
+index 235c9ec37c00ce8838b3e7c02284e402f9d30e38..d0220950a25b5cbad1333383431d76ed76d73602 100644
+--- a/src/main/java/net/minecraft/server/DataBits.java
++++ b/src/main/java/net/minecraft/server/DataBits.java
+@@ -52,6 +52,7 @@ public class DataBits {
+         return (int) ((long) i * j + k >> 32 >> this.i);
+     }
+ 
++    public int getAndSet(int index, int value) { return a(index, value); } // Origami - OBFHELPER
+     public int a(int i, int j) {
+         //Validate.inclusiveBetween(0L, (long) (this.e - 1), (long) i); // Paper
+         //Validate.inclusiveBetween(0L, this.d, (long) j); // Paper
+@@ -64,6 +65,7 @@ public class DataBits {
+         return j1;
+     }
+ 
++    public void set(int index, int value) { b(index, value); } // Origami - OBFHELPER
+     public void b(int i, int j) {
+         //Validate.inclusiveBetween(0L, (long) (this.e - 1), (long) i); // Paper
+         //Validate.inclusiveBetween(0L, this.d, (long) j); // Paper
+@@ -74,6 +76,7 @@ public class DataBits {
+         this.b[k] = l & ~(this.d << i1) | ((long) j & this.d) << i1;
+     }
+ 
++    public int get(int index) { return a(index); } // Origami - OBFHELPER
+     public int a(int i) {
+         //Validate.inclusiveBetween(0L, (long) (this.e - 1), (long) i); // Paper
+         int j = this.b(i);
+diff --git a/src/main/java/net/minecraft/server/HeightMap.java b/src/main/java/net/minecraft/server/HeightMap.java
+index 068b92c5c4ae112771757626ea75694e59f3d255..d8de3877e4f7964eabd6482abd7a088251538583 100644
+--- a/src/main/java/net/minecraft/server/HeightMap.java
++++ b/src/main/java/net/minecraft/server/HeightMap.java
+@@ -19,7 +19,24 @@ public class HeightMap {
+     private static final Predicate<IBlockData> b = (iblockdata) -> {
+         return iblockdata.getMaterial().isSolid();
+     };
+-    private final DataBits c = new DataBits(9, 256);
++    //private final DataBits c = new DataBits(9, 256);
++    // Origami start
++    private final char[] heightmap = new char[16 * 16];
++    public DataBits toDataBits() {
++        final DataBits ret = new DataBits(9, 256);
++        for (int i = 0, len = heightmap.length; i < len; i++) {
++            ret.set(i, this.heightmap[i]);
++        }
++
++        return ret;
++    }
++    public void copyFrom(HeightMap other) {
++        if (other.heightmap.length != this.heightmap.length) {
++            throw new IllegalStateException("Heightmap lengths must match");
++        }
++        System.arraycopy(other.heightmap, 0, this.heightmap, 0, this.heightmap.length);
++    }
++    // Origami end
+     private final Predicate<IBlockData> d;
+     private final IChunkAccess e;
+ 
+@@ -101,24 +118,30 @@ public class HeightMap {
+         }
+     }
+ 
++    public int get(int x, int z) { return a(x, z); } // Origami - OBFHELPER
+     public int a(int i, int j) {
+         return this.a(c(i, j));
+     }
+ 
+     private int a(int i) {
+-        return this.c.a(i);
++        return this.heightmap[i]; // Origami
+     }
+ 
+     private void a(int i, int j, int k) {
+-        this.c.b(c(i, j), k);
++        this.heightmap[c(i, j)] = (char) k; // Origami
+     }
+ 
+     public void a(long[] along) {
+-        System.arraycopy(along, 0, this.c.a(), 0, along.length);
++        // Origami start
++        DataBits databits = new DataBits(9, 256, along);
++        for (int i = 0, len = heightmap.length; i < len; i++) {
++            heightmap[i] = (char) databits.get(i);
++        }
++        // Origami end
+     }
+ 
+     public long[] a() {
+-        return this.c.a();
++        return this.toDataBits().getDataBits();
+     }
+ 
+     private static int c(int i, int j) {
+@@ -137,7 +160,7 @@ public class HeightMap {
+         private final String h;
+         private final HeightMap.Use i;
+         private final Predicate<IBlockData> j;
+-        private static final Map<String, HeightMap.Type> k = (Map) SystemUtils.a((Object) Maps.newHashMap(), (hashmap) -> {
++        private static final Map<String, HeightMap.Type> k = SystemUtils.a(Maps.newHashMap(), (hashmap) -> { // Origami - decompile fix
+             HeightMap.Type[] aheightmap_type = values();
+             int i = aheightmap_type.length;
+ 
+@@ -149,7 +172,7 @@ public class HeightMap {
+ 
+         });
+ 
+-        private Type(String s, HeightMap.Use heightmap_use, Predicate predicate) {
++        private Type(String s, HeightMap.Use heightmap_use, Predicate<IBlockData> predicate) { // Origami - decompile fix
+             this.h = s;
+             this.i = heightmap_use;
+             this.j = predicate;

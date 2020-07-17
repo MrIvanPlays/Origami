@@ -5,12 +5,12 @@ Subject: [PATCH] Alternative keepalive handling
 
 
 diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
-index 111fa3cd586c31eb0ab9fd425179d1f54a40a0f4..192da93f0d01d9d9fe883759067d332177f71deb 100644
+index 306584afb5a8bf1fa53d15f5697d6511a7f3912a..231af493ce876d2ec69719c672386baebd748d8e 100644
 --- a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
 +++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
-@@ -107,4 +107,14 @@ public final class OrigamiConfig {
-             log("Using vanilla redstone algorithm");
-         }
+@@ -122,4 +122,14 @@ public final class OrigamiConfig {
+     private static void packetLimiterDisconnectMessage() {
+         packetLimiterDisconnectMessage = getString("packet-limiter-disconnect-message", packetLimiterDisconnectMessage);
      }
 +
 +    public static boolean alternativeKeepAliveHandling = false;
@@ -36,7 +36,7 @@ index 8e93f1540ba5f995489c1fbcec70d10b011cd9c3..b7665fd239a9700e0b8ee9c2d992a99c
          return this.a;
      }
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 95d57c6de95eca580ca4e3183db851e5a15de342..7b8569f8ff3ec6bca1d945d2376fedcfa7239d7d 100644
+index a31d100315e237b87bc5be40a1cf68f5729301a7..b641ec1d31f96107d689b3798b5076a9650e3893 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -69,6 +69,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -47,7 +47,7 @@ index 95d57c6de95eca580ca4e3183db851e5a15de342..7b8569f8ff3ec6bca1d945d2376fedcf
      Runnable playerJoinReady; // Paper
      public EntityPlayer player;
      private int e;
-@@ -201,6 +202,19 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -202,6 +203,19 @@ public class PlayerConnection implements PacketListenerPlayIn {
          long currentTime = SystemUtils.getMonotonicMillis();
          long elapsedTime = currentTime - this.getLastPing();
  
@@ -67,7 +67,7 @@ index 95d57c6de95eca580ca4e3183db851e5a15de342..7b8569f8ff3ec6bca1d945d2376fedcf
          if (this.isPendingPing()) {
              if (!this.processedDisconnect && elapsedTime >= KEEPALIVE_LIMIT) { // check keepalive limit, don't fire if already disconnected
                  PlayerConnection.LOGGER.warn("{} was kicked due to keepalive timeout!", this.player.getName()); // more info
-@@ -214,6 +228,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -215,6 +229,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                  this.sendPacket(new PacketPlayOutKeepAlive(this.getKeepAliveID()));
              }
          }
@@ -75,7 +75,7 @@ index 95d57c6de95eca580ca4e3183db851e5a15de342..7b8569f8ff3ec6bca1d945d2376fedcf
          // Paper end
  
          this.minecraftServer.getMethodProfiler().exit();
-@@ -2697,6 +2712,15 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -2698,6 +2713,15 @@ public class PlayerConnection implements PacketListenerPlayIn {
  
      @Override
      public void a(PacketPlayInKeepAlive packetplayinkeepalive) {
@@ -91,7 +91,7 @@ index 95d57c6de95eca580ca4e3183db851e5a15de342..7b8569f8ff3ec6bca1d945d2376fedcf
          //PlayerConnectionUtils.ensureMainThread(packetplayinkeepalive, this, this.player.getWorldServer()); // CraftBukkit // Paper - This shouldn't be on the main thread
          if (this.awaitingKeepAlive && packetplayinkeepalive.b() == this.h) {
              int i = (int) (SystemUtils.getMonotonicMillis() - this.lastKeepAlive);
-@@ -2710,6 +2734,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -2711,6 +2735,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
              });
              // Paper end
          }

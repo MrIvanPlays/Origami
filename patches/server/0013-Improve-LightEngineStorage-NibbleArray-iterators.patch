@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Fri, 17 Jul 2020 09:38:55 +0300
+Subject: [PATCH] Improve LightEngineStorage NibbleArray iterators
+
+
+diff --git a/src/main/java/net/minecraft/server/LightEngineStorage.java b/src/main/java/net/minecraft/server/LightEngineStorage.java
+index b98e60772bad7e06845b50fdc11e98c0ea775d3d..23c1ad98a2d7d546648f8ffdf89d694c597f9c35 100644
+--- a/src/main/java/net/minecraft/server/LightEngineStorage.java
++++ b/src/main/java/net/minecraft/server/LightEngineStorage.java
+@@ -23,7 +23,8 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+     protected final M f; protected final M updating; // Paper - diff on change, should be "updating"
+     protected final LongSet g = new LongOpenHashSet();
+     protected final LongSet h = new LongOpenHashSet(); LongSet dirty = h; // Paper - OBFHELPER
+-    protected final Long2ObjectMap<NibbleArray> i = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap());
++    protected final Long2ObjectOpenHashMap<NibbleArray> i_synchronized_map_real = new Long2ObjectOpenHashMap<>(); // Origami
++    protected final Long2ObjectMap<NibbleArray> i = Long2ObjectMaps.synchronize(i_synchronized_map_real); // Origami
+     private final LongSet n = new LongOpenHashSet();
+     private final LongSet o = new LongOpenHashSet();
+     private final LongSet p = new LongOpenHashSet();
+@@ -247,7 +248,7 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+ 
+             this.p.clear();
+             this.j = false;
+-            ObjectIterator objectiterator = this.i.long2ObjectEntrySet().iterator();
++            ObjectIterator objectiterator = this.i_synchronized_map_real.long2ObjectEntrySet().fastIterator(); // Origami - fast iterator
+ 
+             Entry entry;
+             long j;
+@@ -284,7 +285,7 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+             }
+ 
+             this.n.clear();
+-            objectiterator = this.i.long2ObjectEntrySet().iterator();
++            objectiterator = this.i_synchronized_map_real.long2ObjectEntrySet().fastIterator(); // Origami - fast iterator
+ 
+             while (objectiterator.hasNext()) {
+                 entry = (Entry) objectiterator.next();

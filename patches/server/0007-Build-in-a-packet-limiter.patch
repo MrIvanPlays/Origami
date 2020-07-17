@@ -5,6 +5,72 @@ Subject: [PATCH] Build in a packet limiter
 
 The main reasoning behind is that most of the servers suffer due to packet spam which drops the TPS.
 
+diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+index 111fa3cd586c31eb0ab9fd425179d1f54a40a0f4..306584afb5a8bf1fa53d15f5697d6511a7f3912a 100644
+--- a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
++++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+@@ -107,4 +107,19 @@ public final class OrigamiConfig {
+             log("Using vanilla redstone algorithm");
+         }
+     }
++
++    public static int packetIntervalSeconds = 7;
++    private static void packetIntervalSeconds() {
++        packetIntervalSeconds = getInt("packet-limiter-interval-seconds", packetIntervalSeconds);
++    }
++
++    public static int maxPacketRate = 500;
++    private static void maxPacketRate() {
++        maxPacketRate = getInt("packet-limiter-max-packet-rate", maxPacketRate);
++    }
++
++    public static String packetLimiterDisconnectMessage = "You have been disconnected for sending too many packets.";
++    private static void packetLimiterDisconnectMessage() {
++        packetLimiterDisconnectMessage = getString("packet-limiter-disconnect-message", packetLimiterDisconnectMessage);
++    }
+ }
+diff --git a/src/main/java/com/mrivanplays/origami/util/OrigamiPacketLimiter.java b/src/main/java/com/mrivanplays/origami/util/OrigamiPacketLimiter.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..715421fd858e82ca129fc50813b4adbc1097b929
+--- /dev/null
++++ b/src/main/java/com/mrivanplays/origami/util/OrigamiPacketLimiter.java
+@@ -0,0 +1,36 @@
++package com.mrivanplays.origami.util;
++
++import com.mrivanplays.origami.OrigamiConfig;
++
++import net.minecraft.server.PlayerConnection;
++
++import org.apache.logging.log4j.Level;
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++
++import io.netty.channel.ChannelDuplexHandler;
++import io.netty.channel.ChannelHandlerContext;
++
++public class OrigamiPacketLimiter extends ChannelDuplexHandler {
++
++    private static final Logger LOGGER = LogManager.getLogger();
++
++    private final PlayerConnection connection;
++    private final PacketBucket bucket;
++
++    public OrigamiPacketLimiter(PlayerConnection connection) {
++        this.connection = connection;
++        this.bucket = new PacketBucket(OrigamiConfig.packetIntervalSeconds * 1000, 150);
++    }
++
++    @Override
++    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
++        int packets = bucket.incrementPackets(1);
++        if (bucket.getCurrentPacketRate() > OrigamiConfig.maxPacketRate) {
++            connection.disconnect(OrigamiConfig.packetLimiterDisconnectMessage);
++            LOGGER.log(Level.WARN, "Player ({}) was kicked for sending too many packets! {} in the last {} seconds", connection.getPlayer() == null ? "player not initialized" : connection.getPlayer().getName(), packets, bucket.intervalTime / 1000.0);
++            return;
++        }
++        super.channelRead(ctx, msg);
++    }
++}
 diff --git a/src/main/java/com/mrivanplays/origami/util/PacketBucket.java b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..c8da2b4a83e3da4a41eb3ff96737764c3fad61cb
@@ -90,34 +156,15 @@ index 0000000000000000000000000000000000000000..c8da2b4a83e3da4a41eb3ff96737764c
 +        return this.sum / (this.intervalTime / (double)MILLISECONDS_TO_SECONDS);
 +    }
 +}
-diff --git a/src/main/java/net/minecraft/server/PacketDecoder.java b/src/main/java/net/minecraft/server/PacketDecoder.java
-index c0afb2a3c282ea7ab8c1d99b80843dc23b9f5252..42d8d9cb1e7525d662aaebd9d943312cc5bf1f66 100644
---- a/src/main/java/net/minecraft/server/PacketDecoder.java
-+++ b/src/main/java/net/minecraft/server/PacketDecoder.java
-@@ -16,12 +16,26 @@ public class PacketDecoder extends ByteToMessageDecoder {
-     private static final Marker b = MarkerManager.getMarker("PACKET_RECEIVED", NetworkManager.b);
-     private final EnumProtocolDirection c;
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index 95d57c6de95eca580ca4e3183db851e5a15de342..a31d100315e237b87bc5be40a1cf68f5729301a7 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -116,6 +116,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
  
-+    // Origami start
-+    private com.mrivanplays.origami.util.PacketBucket bucket = new com.mrivanplays.origami.util.PacketBucket(7000.0, 150);
-+    private boolean handlePacketLimit(ChannelHandlerContext ctx) {
-+        int packets = bucket.incrementPackets(1);
-+        if (bucket.getCurrentPacketRate() > 500) {
-+            ctx.close();
-+            LOGGER.log(org.apache.logging.log4j.Level.WARN, "A player was kicked for sending too many packets! {} in the last {} seconds", packets, bucket.intervalTime / 1000.0);
-+            return true;
-+        }
-+        return false;
-+    }
-+    // Origami end
-+
-     public PacketDecoder(EnumProtocolDirection enumprotocoldirection) {
-         this.c = enumprotocoldirection;
+         // CraftBukkit start - add fields and methods
+         this.server = minecraftserver.server;
++        networkmanager.channel.pipeline().addBefore("decoder", "limiter", new com.mrivanplays.origami.util.OrigamiPacketLimiter(this)); // Origami
      }
  
-     protected void decode(ChannelHandlerContext channelhandlercontext, ByteBuf bytebuf, List<Object> list) throws Exception {
-         if (bytebuf.readableBytes() != 0) {
-+            if (handlePacketLimit(channelhandlercontext)) { return; } // Origami
-             PacketDataSerializer packetdataserializer = new PacketDataSerializer(bytebuf);
-             int i = packetdataserializer.i();
-             Packet<?> packet = ((EnumProtocol) channelhandlercontext.channel().attr(NetworkManager.c).get()).a(this.c, i);
+     private final org.bukkit.craftbukkit.CraftServer server;

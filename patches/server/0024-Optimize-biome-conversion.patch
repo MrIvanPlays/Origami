@@ -1,0 +1,56 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sat, 18 Jul 2020 14:45:44 +0300
+Subject: [PATCH] Optimize biome conversion
+
+Credits to Spottedleaf/Tuinity
+
+diff --git a/src/main/java/net/minecraft/server/BiomeBase.java b/src/main/java/net/minecraft/server/BiomeBase.java
+index db198811ddecc00cbd398f3805bdf51b3239f390..14051335963ba733212465b51424f0883de05af6 100644
+--- a/src/main/java/net/minecraft/server/BiomeBase.java
++++ b/src/main/java/net/minecraft/server/BiomeBase.java
+@@ -92,6 +92,14 @@ public class BiomeBase {
+         return new WorldGenCarverWrapper<>(worldgencarverabstract, c0);
+     }
+ 
++    // Origami start - optimise biome conversion
++    private org.bukkit.block.Biome bukkitBiome;
++    public final org.bukkit.block.Biome getBukkitBiome() {
++        if (bukkitBiome == null) bukkitBiome = org.bukkit.block.Biome.valueOf(IRegistry.BIOME.getKey(this).getKey().toUpperCase(java.util.Locale.ENGLISH));
++        return bukkitBiome;
++    }
++    // Origami end
++
+     protected BiomeBase(BiomeBase.a biomebase_a) {
+         if (biomebase_a.a != null && biomebase_a.b != null && biomebase_a.c != null && biomebase_a.d != null && biomebase_a.e != null && biomebase_a.f != null && biomebase_a.g != null && biomebase_a.j != null) {
+             this.m = biomebase_a.a;
+diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
+index 182f7e333956e719b7fe4d9f4734b760037fd00b..cdd43971e7239fefc1063b97853aa31fd0b2b4bd 100644
+--- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
++++ b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
+@@ -505,15 +505,23 @@ public class CraftBlock implements Block {
+             return null;
+         }
+ 
+-        return Biome.valueOf(IRegistry.BIOME.getKey(base).getKey().toUpperCase(java.util.Locale.ENGLISH));
++        return base.getBukkitBiome(); // Origami
+     }
+ 
++    private static final java.util.EnumMap<Biome, BiomeBase> BUKKIT_BIOME_TO_NMS_CACHE = new java.util.EnumMap<>(Biome.class); // Origami
++
+     public static BiomeBase biomeToBiomeBase(Biome bio) {
+         if (bio == null) {
+             return null;
+         }
+ 
+-        return IRegistry.BIOME.get(new MinecraftKey(bio.name().toLowerCase(java.util.Locale.ENGLISH)));
++        // Origami start
++        BiomeBase cached = BUKKIT_BIOME_TO_NMS_CACHE.get(bio);
++        if (cached != null) return cached;
++        BiomeBase ret = IRegistry.BIOME.get(new MinecraftKey(bio.name().toLowerCase(java.util.Locale.ENGLISH)));
++        synchronized (BUKKIT_BIOME_TO_NMS_CACHE) BUKKIT_BIOME_TO_NMS_CACHE.put(bio, ret);
++        return ret;
++        // Origami end
+     }
+ 
+     @Override

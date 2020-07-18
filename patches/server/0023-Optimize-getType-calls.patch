@@ -1,0 +1,91 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sat, 18 Jul 2020 14:40:18 +0300
+Subject: [PATCH] Optimize getType calls
+
+Credits: Spottedleaf/Tuinity
+
+diff --git a/src/main/java/net/minecraft/server/IBlockData.java b/src/main/java/net/minecraft/server/IBlockData.java
+index 10a5901db1e0efe0b7d6958098bb0ae492a9e76f..d73cc0b28ba95f7ff3cfa0b23bdc77466943cb57 100644
+--- a/src/main/java/net/minecraft/server/IBlockData.java
++++ b/src/main/java/net/minecraft/server/IBlockData.java
+@@ -8,6 +8,14 @@ public class IBlockData extends BlockBase.BlockData {
+ 
+     public static final Codec<IBlockData> b = a((Codec) IRegistry.BLOCK, Block::getBlockData).stable();
+ 
++    // Origami start - optimize getType calls
++    org.bukkit.Material cachedMaterial;
++    public final org.bukkit.Material getBukkitMaterial() {
++        if (cachedMaterial == null) cachedMaterial = org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(getBlock());
++        return cachedMaterial;
++    }
++    // Origami end
++
+     public IBlockData(Block block, ImmutableMap<IBlockState<?>, Comparable<?>> immutablemap, MapCodec<IBlockData> mapcodec) {
+         super(block, immutablemap, mapcodec);
+     }
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftChunkSnapshot.java b/src/main/java/org/bukkit/craftbukkit/CraftChunkSnapshot.java
+index 4ec53a54e39cccf29cbe4f21e094bf997ba4389c..4cbc548041bc6e0c3db806b6a09b6ea9d7483543 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftChunkSnapshot.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftChunkSnapshot.java
+@@ -77,7 +77,7 @@ public class CraftChunkSnapshot implements ChunkSnapshot {
+     public Material getBlockType(int x, int y, int z) {
+         CraftChunk.validateChunkCoordinates(x, y, z);
+ 
+-        return CraftMagicNumbers.getMaterial(blockids[y >> 4].a(x, y & 0xF, z).getBlock());
++        return blockids[y >> 4].a(x, y & 0xF, z).getBukkitMaterial(); // Origami
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
+index 9b0e868f006a34b47ef9a48c7ea844be8122c291..182f7e333956e719b7fe4d9f4734b760037fd00b 100644
+--- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
++++ b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
+@@ -207,7 +207,7 @@ public class CraftBlock implements Block {
+ 
+     @Override
+     public Material getType() {
+-        return CraftMagicNumbers.getMaterial(world.getType(position).getBlock());
++        return world.getType(position).getBukkitMaterial(); // Origami
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlockState.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlockState.java
+index 11aa2dc18c2fa76c66d89f650636eb623662717b..a867a83f67d04251dc8b2d63d5d5dcd5b60164db 100644
+--- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlockState.java
++++ b/src/main/java/org/bukkit/craftbukkit/block/CraftBlockState.java
+@@ -136,7 +136,7 @@ public class CraftBlockState implements BlockState {
+ 
+     @Override
+     public Material getType() {
+-        return CraftMagicNumbers.getMaterial(data.getBlock());
++        return data.getBukkitMaterial(); // Origami
+     }
+ 
+     public void setFlag(int flag) {
+diff --git a/src/main/java/org/bukkit/craftbukkit/block/data/CraftBlockData.java b/src/main/java/org/bukkit/craftbukkit/block/data/CraftBlockData.java
+index bbded5671e986be34ebe3100e4c10ee0d5741764..dc6dabdbb93661baa0382141559a51e47a64abb3 100644
+--- a/src/main/java/org/bukkit/craftbukkit/block/data/CraftBlockData.java
++++ b/src/main/java/org/bukkit/craftbukkit/block/data/CraftBlockData.java
+@@ -44,7 +44,7 @@ public class CraftBlockData implements BlockData {
+ 
+     @Override
+     public Material getMaterial() {
+-        return CraftMagicNumbers.getMaterial(state.getBlock());
++        return state.getBukkitMaterial(); // Origami
+     }
+ 
+     public IBlockData getState() {
+diff --git a/src/main/java/org/bukkit/craftbukkit/generator/CraftChunkData.java b/src/main/java/org/bukkit/craftbukkit/generator/CraftChunkData.java
+index 948a59217cca0f8dfa9d3befb61e679a67bf29bc..85f1cedd62b0eadeca76594a12e4610280050863 100644
+--- a/src/main/java/org/bukkit/craftbukkit/generator/CraftChunkData.java
++++ b/src/main/java/org/bukkit/craftbukkit/generator/CraftChunkData.java
+@@ -73,7 +73,7 @@ public final class CraftChunkData implements ChunkGenerator.ChunkData {
+ 
+     @Override
+     public Material getType(int x, int y, int z) {
+-        return CraftMagicNumbers.getMaterial(getTypeId(x, y, z).getBlock());
++        return getTypeId(x, y, z).getBukkitMaterial(); // Origami
+     }
+ 
+     @Override

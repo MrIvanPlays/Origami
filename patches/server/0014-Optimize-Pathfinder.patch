@@ -133,3 +133,16 @@ index 5cfcac3bc29e3f3d139b10209f5082cba292a434..defea2cf2959e3581dc590b5b4e5f6f9
      public abstract PathDestination a(double d0, double d1, double d2);
  
      public abstract int a(PathPoint[] apathpoint, PathPoint pathpoint);
+diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
+index d7f0df123ba716ca8587cbfab2c8e94961164909..928018893dafc0da154e6669c9832daab911a373 100644
+--- a/src/main/java/net/minecraft/server/PathfinderNormal.java
++++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
+@@ -487,7 +487,7 @@ public class PathfinderNormal extends PathfinderAbstract {
+                             return PathType.DANGER_FIRE;
+                         }
+ 
+-                        Fluid fluid = iblockaccess.getFluid(blockposition_mutableblockposition);
++                        Fluid fluid = iblockdata.getFluid(); // Origami
+ 
+                         if (fluid.a((Tag) TagsFluid.WATER)) {
+                             return PathType.WATER_BORDER;

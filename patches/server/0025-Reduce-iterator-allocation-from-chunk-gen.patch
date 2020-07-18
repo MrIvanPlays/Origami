@@ -1,0 +1,91 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sat, 18 Jul 2020 14:54:28 +0300
+Subject: [PATCH] Reduce iterator allocation from chunk gen
+
+Credits: Spottedleaf/Tuinity
+
+diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
+index ac58fcb7985ebe0cfdab6e1400deb37c233ff637..ae90bcef868a04c25255fecdb6d9e5bac85f169e 100644
+--- a/src/main/java/net/minecraft/server/ChunkRegionLoader.java
++++ b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
+@@ -186,10 +186,12 @@ public class ChunkRegionLoader {
+         ((IChunkAccess) object).b(flag);
+         NBTTagCompound nbttagcompound3 = nbttagcompound1.getCompound("Heightmaps");
+         EnumSet<HeightMap.Type> enumset = EnumSet.noneOf(HeightMap.Type.class);
+-        Iterator iterator1 = ((IChunkAccess) object).getChunkStatus().h().iterator();
++        // Origami start
++        //Iterator iterator1 = ((IChunkAccess) object).getChunkStatus().h().iterator();
+ 
+-        while (iterator1.hasNext()) {
+-            HeightMap.Type heightmap_type = (HeightMap.Type) iterator1.next();
++        for (HeightMap.Type heightmap_type : ((IChunkAccess) object).getChunkStatus().heightMaps) {
++            //HeightMap.Type heightmap_type = (HeightMap.Type) iterator1.next();
++            // Origami end
+             String s = heightmap_type.b();
+ 
+             if (nbttagcompound3.hasKeyOfType(s, 12)) {
+diff --git a/src/main/java/net/minecraft/server/ChunkStatus.java b/src/main/java/net/minecraft/server/ChunkStatus.java
+index 36c26512297430cf072b549614990b064db94152..faba5a493007ce62083243a1e615e30580cd2980 100644
+--- a/src/main/java/net/minecraft/server/ChunkStatus.java
++++ b/src/main/java/net/minecraft/server/ChunkStatus.java
+@@ -109,7 +109,7 @@ public class ChunkStatus {
+     private final ChunkStatus.c w;
+     private final int x;
+     private final ChunkStatus.Type y;
+-    private final EnumSet<HeightMap.Type> z;
++    private final EnumSet<HeightMap.Type> z; public final HeightMap.Type[] heightMaps; // Origami
+ 
+     private static CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(ChunkStatus chunkstatus, LightEngineThreaded lightenginethreaded, IChunkAccess ichunkaccess) {
+         boolean flag = a(chunkstatus, ichunkaccess);
+@@ -171,7 +171,7 @@ public class ChunkStatus {
+         this.w = chunkstatus_c;
+         this.x = i;
+         this.y = chunkstatus_type;
+-        this.z = enumset;
++        this.z = enumset; this.heightMaps = new java.util.ArrayList<>(z).toArray(new HeightMap.Type[0]); // Origami
+         this.t = chunkstatus == null ? 0 : chunkstatus.c() + 1;
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/ProtoChunk.java b/src/main/java/net/minecraft/server/ProtoChunk.java
+index 3b03c28ee5de1481e1f8088c0e4d388778155fad..1355e923d153d7b59bca3d00b2735d510e60a359 100644
+--- a/src/main/java/net/minecraft/server/ProtoChunk.java
++++ b/src/main/java/net/minecraft/server/ProtoChunk.java
+@@ -179,14 +179,16 @@ public class ProtoChunk implements IChunkAccess {
+                     lightengine.a(blockposition);
+                 }
+ 
+-                EnumSet<HeightMap.Type> enumset = this.getChunkStatus().h();
++                // Origami start
++                HeightMap.Type[] enumset = this.getChunkStatus().heightMaps;
+                 EnumSet<HeightMap.Type> enumset1 = null;
+-                Iterator iterator = enumset.iterator();
++                //Iterator iterator = enumset.iterator();
+ 
+-                HeightMap.Type heightmap_type;
++                //HeightMap.Type heightmap_type; // Origami
+ 
+-                while (iterator.hasNext()) {
+-                    heightmap_type = (HeightMap.Type) iterator.next();
++                for (HeightMap.Type heightmap_type : enumset) {
++                    //heightmap_type = (HeightMap.Type) iterator.next();
++                    // Origami end
+                     HeightMap heightmap = (HeightMap) this.f.get(heightmap_type);
+ 
+                     if (heightmap == null) {
+@@ -202,10 +204,12 @@ public class ProtoChunk implements IChunkAccess {
+                     HeightMap.a(this, enumset1);
+                 }
+ 
+-                iterator = enumset.iterator();
++                // Origami start
++                //iterator = enumset.iterator();
+ 
+-                while (iterator.hasNext()) {
+-                    heightmap_type = (HeightMap.Type) iterator.next();
++                for (HeightMap.Type heightmap_type : enumset) {
++                    //heightmap_type = (HeightMap.Type) iterator.next();
++                    // Origami end
+                     ((HeightMap) this.f.get(heightmap_type)).a(i & 15, j, k & 15, iblockdata);
+                 }
+ 

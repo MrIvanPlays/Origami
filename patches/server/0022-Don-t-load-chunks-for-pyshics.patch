@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sat, 18 Jul 2020 14:26:19 +0300
+Subject: [PATCH] Don't load chunks for pyshics
+
+Credits: starlis/empirecraft
+
+diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
+index ff770a3b0e5c4fcccc498ecca51dad9863b0fe0e..d42975c9b0eeb9e8d61708be327bf35529c1811b 100644
+--- a/src/main/java/net/minecraft/server/BlockBase.java
++++ b/src/main/java/net/minecraft/server/BlockBase.java
+@@ -524,7 +524,8 @@ public abstract class BlockBase {
+                 EnumDirection enumdirection = aenumdirection[l];
+ 
+                 blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection);
+-                IBlockData iblockdata = generatoraccess.getType(blockposition_mutableblockposition);
++                IBlockData iblockdata = generatoraccess.getTypeIfLoaded(blockposition_mutableblockposition); // Origami
++                if (iblockdata == null) return; // Origami
+                 IBlockData iblockdata1 = iblockdata.updateState(enumdirection.opposite(), this.p(), generatoraccess, blockposition_mutableblockposition, blockposition);
+ 
+                 Block.a(iblockdata, iblockdata1, generatoraccess, blockposition_mutableblockposition, i, j);
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 87aec3ebc9fccafc482190b66b26860bae8a23f9..e1c4fe3a6a58e026747801d9c6c6256337dfae63 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -645,7 +645,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     public void neighborChanged(BlockPosition pos, Block block, BlockPosition parent) { a(pos, block, parent); } // Origami - OBFHELPER
+     public void a(BlockPosition blockposition, Block block, BlockPosition blockposition1) {
+         if (!this.isClientSide) {
+-            IBlockData iblockdata = this.getType(blockposition);
++            IBlockData iblockdata = this.getTypeIfLoaded(blockposition); // Origami
++            if (iblockdata == null) return; // Origami
+ 
+             try {
+                 // CraftBukkit start

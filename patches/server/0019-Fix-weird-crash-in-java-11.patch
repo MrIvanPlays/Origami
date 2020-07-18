@@ -38,7 +38,7 @@ index 6beefff203ed6e448898eb5b2e95800def868381..9ef39516c95cf67304ee974b8aea6314
      }
  
      protected void bk() {
-+        if (com.mrivanplays.origami.util.OtherUtilities.getJavaVersion() < 11) { // Origami
++        if (com.mrivanplays.origami.util.OtherUtilities.getJavaVersion() >= 11) { // Origami
          Thread.yield();
          LockSupport.parkNanos("waiting for tasks", 100000L);
 +        } // Origami

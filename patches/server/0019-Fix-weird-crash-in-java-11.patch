@@ -12,7 +12,7 @@ I find this fix as a temporary solution rather than a permanent one, everyone's 
 
 diff --git a/src/main/java/com/mrivanplays/origami/util/OtherUtilities.java b/src/main/java/com/mrivanplays/origami/util/OtherUtilities.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a95adaad11e86fd916a5d50f8a4a82374856c1f3
+index 0000000000000000000000000000000000000000..b4fa4121be10499d7b7e0576d7661950457a3b12
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/util/OtherUtilities.java
 @@ -0,0 +1,14 @@
@@ -31,7 +31,7 @@ index 0000000000000000000000000000000000000000..a95adaad11e86fd916a5d50f8a4a8237
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
-index 6beefff203ed6e448898eb5b2e95800def868381..9ef39516c95cf67304ee974b8aea6314f8f0d500 100644
+index 6beefff203ed6e448898eb5b2e95800def868381..63e3cd14c704b799776544d1c76f3c41e1ce5d7e 100644
 --- a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
 +++ b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
 @@ -127,8 +127,10 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R

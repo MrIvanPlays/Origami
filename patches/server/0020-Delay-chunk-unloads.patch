@@ -1,0 +1,191 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sat, 18 Jul 2020 12:25:26 +0300
+Subject: [PATCH] Delay chunk unloads
+
+Original patch: Spottedleaf and Tuinity, all credits to them
+
+diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+index 231af493ce876d2ec69719c672386baebd748d8e..40f826409b71d840cd21cb9bae43d60dad0f8182 100644
+--- a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
++++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+@@ -2,6 +2,8 @@ package com.mrivanplays.origami;
+ 
+ import com.destroystokyo.paper.util.SneakyThrow;
+ 
++import net.minecraft.server.TicketType;
++
+ import java.io.File;
+ import java.io.IOException;
+ import java.lang.reflect.Method;
+@@ -132,4 +134,12 @@ public final class OrigamiConfig {
+             log("Using vanilla KeepAlive handling");
+         }
+     }
++
++    public static int delayChunkUnloadsBy = 1;
++    private static void delayChunkUnloadsBy() {
++        delayChunkUnloadsBy = getInt("delay-chunk-unloads-by", delayChunkUnloadsBy) * 20;
++        if (delayChunkUnloadsBy >= 0) {
++            TicketType.DELAY_UNLOAD.loadPeriod = delayChunkUnloadsBy;
++        }
++    }
+ }
+diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
+index 893c0085bca0a8d77a85dba1cc29f2dec96c56ec..0400b311fe95a57471e190a346eb13ac793d5104 100644
+--- a/src/main/java/net/minecraft/server/ChunkMapDistance.java
++++ b/src/main/java/net/minecraft/server/ChunkMapDistance.java
+@@ -31,7 +31,7 @@ public abstract class ChunkMapDistance {
+     private static final int b = 33 + ChunkStatus.a(ChunkStatus.FULL) - 2;
+     private final Long2ObjectMap<ObjectSet<EntityPlayer>> c = new Long2ObjectOpenHashMap();
+     public final Long2ObjectOpenHashMap<ArraySetSorted<Ticket<?>>> tickets = new Long2ObjectOpenHashMap();
+-    private final ChunkMapDistance.a ticketLevelTracker = new ChunkMapDistance.a();
++    private final ChunkMapDistance.a ticketLevelTracker = new ChunkMapDistance.a(); final ChunkMapDistance.a getTicketTracker() { return ticketLevelTracker; } // Origami - OBFHELPER
+     public static final int MOB_SPAWN_RANGE = 8; // private final ChunkMapDistance.b f = new ChunkMapDistance.b(8); // Paper - no longer used
+     private final ChunkMapDistance.c g = new ChunkMapDistance.c(33);
+     // Paper start use a queue, but still keep unique requirement
+@@ -53,6 +53,31 @@ public abstract class ChunkMapDistance {
+ 
+     PlayerChunkMap chunkMap; // Paper
+ 
++    // Origami start - delay chunk unloads
++    private long nextUnloadId;
++    private final Long2ObjectOpenHashMap<Ticket<Long>> delayedChunks = new Long2ObjectOpenHashMap<>();
++    public final void removeTickets(long chunk, TicketType<?> ticketType) {
++        ArraySetSorted<Ticket<?>> tickets = this.tickets.get(chunk);
++        if (tickets == null) return;
++        boolean changed = tickets.removeIf(ticket -> ticket.getTicketType() == ticketType);
++        if (changed) getTicketTracker().update(chunk, getLowestTicketLevel(tickets), false);
++    }
++    private final java.util.function.LongFunction<Ticket<Long>> computeFunction = (key) -> {
++        Ticket<Long> ret = new Ticket<>(TicketType.DELAY_UNLOAD, -1, ChunkMapDistance.this.nextUnloadId++);
++        ret.isCached = true;
++        return ret;
++    };
++    private void computeDelayedTicketFor(long chunk, int removedLevel, ArraySetSorted<Ticket<?>> tickets) {
++        int lowestLevel = getLowestTicketLevel(tickets);
++        if (removedLevel > lowestLevel) return;
++        final Ticket<Long> ticket = this.delayedChunks.computeIfAbsent(chunk, this.computeFunction);
++        if (ticket.getTicketLevel() != -1) tickets.remove(ticket);
++        ticket.setCreationTick(this.currentTick);
++        ticket.setTicketLevel(removedLevel);
++        tickets.add(ticket);
++    }
++    // Origami end
++
+     protected ChunkMapDistance(Executor executor, Executor executor1) {
+         executor1.getClass();
+         Mailbox<Runnable> mailbox = Mailbox.a("player ticket throttler", executor1::execute);
+@@ -68,11 +93,20 @@ public abstract class ChunkMapDistance {
+         ++this.currentTick;
+         ObjectIterator objectiterator = this.tickets.long2ObjectEntrySet().fastIterator();
+ 
++        int[] tempLevel = new int[] { PlayerChunkMap.GOLDEN_TICKET + 1 }; // Origami
+         while (objectiterator.hasNext()) {
+             Entry<ArraySetSorted<Ticket<?>>> entry = (Entry) objectiterator.next();
+ 
+             if ((entry.getValue()).removeIf((ticket) -> { // CraftBukkit - decompile error
+-                return ticket.b(this.currentTick);
++                // Origami start
++                boolean ret = ticket.isExpired(currentTick);
++                if (com.mrivanplays.origami.OrigamiConfig.delayChunkUnloadsBy <= 0) return ret;
++                if (ret && ticket.getTicketType() != TicketType.DELAY_UNLOAD && ticket.getTicketLevel() < tempLevel[0]) {
++                    tempLevel[0] = ticket.getTicketLevel();
++                }
++                if (ticket.getTicketType() == TicketType.DELAY_UNLOAD && ticket.isCached) delayedChunks.remove(entry.getLongKey(), ticket);
++                return ret;
++                // Origami end
+             })) {
+                 this.ticketLevelTracker.update(entry.getLongKey(), getLowestTicketLevel((ArraySetSorted) entry.getValue()), false);
+             }
+@@ -176,6 +210,8 @@ public abstract class ChunkMapDistance {
+         boolean removed = false; // CraftBukkit
+         if (arraysetsorted.remove(ticket)) {
+             removed = true; // CraftBukkit
++            // Origami start - replace logic
++            /*
+             // Paper start - delay chunk unloads for player tickets
+             long delayChunkUnloadsBy = chunkMap.world.paperConfig.delayChunkUnloadsBy;
+             if (ticket.getTicketType() == TicketType.PLAYER && delayChunkUnloadsBy > 0) {
+@@ -197,6 +233,11 @@ public abstract class ChunkMapDistance {
+                 }
+             }
+             // Paper end
++             */
++            if (com.mrivanplays.origami.OrigamiConfig.delayChunkUnloadsBy > 0 && ticket.getTicketType() != TicketType.DELAY_UNLOAD) {
++                this.computeDelayedTicketFor(i, ticket.getTicketLevel(), arraysetsorted);
++            }
++            // Origami end
+         }
+ 
+         if (arraysetsorted.isEmpty()) {
+diff --git a/src/main/java/net/minecraft/server/Ticket.java b/src/main/java/net/minecraft/server/Ticket.java
+index e41cb8613efc86499dfe3be36c9130ab6dc9b89e..dc2895283315e5e0224194a196512c2a7e123e2d 100644
+--- a/src/main/java/net/minecraft/server/Ticket.java
++++ b/src/main/java/net/minecraft/server/Ticket.java
+@@ -5,17 +5,17 @@ import java.util.Objects;
+ public final class Ticket<T> implements Comparable<Ticket<?>> {
+ 
+     private final TicketType<T> a;
+-    private final int b;
++    private int b; public final void setTicketLevel(int value) { this.b = value; } // Origami - OBFHELPER
+     public final T identifier; public final T getObjectReason() { return this.identifier; } // Paper - OBFHELPER
+-    private long d; public final long getCreationTick() { return this.d; } // Paper - OBFHELPER
++    private long d; public final long getCreationTick() { return this.d; } public final void setCreationTick(long d) { this.d = d; }// Paper - OBFHELPER // Origami - OBFHELPER
+     public int priority = 0; // Paper
+-    public long delayUnloadBy; // Paper
++    boolean isCached; // Origami
+ 
+     protected Ticket(TicketType<T> tickettype, int i, T t0) {
+         this.a = tickettype;
+         this.b = i;
+         this.identifier = t0;
+-        this.delayUnloadBy = tickettype.loadPeriod; // Paper
++        //this.delayUnloadBy = tickettype.loadPeriod; // Paper // Origami
+     }
+ 
+     public int compareTo(Ticket<?> ticket) {
+@@ -64,8 +64,9 @@ public final class Ticket<T> implements Comparable<Ticket<?>> {
+         this.d = i;
+     }
+ 
++    protected final boolean isExpired(long time) { return b(time); } // Origami - OBFHELPER
+     protected boolean b(long i) {
+-        long j = delayUnloadBy; // Paper
++        long j = a.getLoadPeriod(); // Paper
+ 
+         return j != 0L && i - this.d > j;
+     }
+diff --git a/src/main/java/net/minecraft/server/TicketType.java b/src/main/java/net/minecraft/server/TicketType.java
+index 5c789b25f1df2eae8ea8ceb4ba977ba336fe6d5e..c44182b2a6a89105c8db09f403a2b26847beb022 100644
+--- a/src/main/java/net/minecraft/server/TicketType.java
++++ b/src/main/java/net/minecraft/server/TicketType.java
+@@ -26,7 +26,7 @@ public class TicketType<T> {
+     public static final TicketType<Long> ASYNC_LOAD = a("async_load", Long::compareTo); // Paper
+     public static final TicketType<ChunkCoordIntPair> PRIORITY = a("priority", Comparator.comparingLong(ChunkCoordIntPair::pair), 300); // Paper
+     public static final TicketType<ChunkCoordIntPair> URGENT = a("urgent", Comparator.comparingLong(ChunkCoordIntPair::pair), 300); // Paper
+-    public static final TicketType<Long> DELAY_UNLOAD = a("delay_unload", Long::compareTo, 300); // Paper
++    public static final TicketType<Long> DELAY_UNLOAD = a("delay_unload", Long::compareTo); // Paper // Origami
+ 
+     public static <T> TicketType<T> a(String s, Comparator<T> comparator) {
+         return new TicketType<>(s, comparator, 0L);
+@@ -50,6 +50,7 @@ public class TicketType<T> {
+         return this.j;
+     }
+ 
++    public long getLoadPeriod() { return b(); } // Origami - OBFHELPER
+     public long b() {
+         return this.loadPeriod;
+     }
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+index 500b5213a9e51c4d0a1a328a047fcdc45c053e8e..f082690ed9c8d082df68c88ba2bcd8956225b1db 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+@@ -495,6 +495,7 @@ public class CraftWorld implements World {
+         org.spigotmc.AsyncCatcher.catchOp("chunk unload"); // Spigot
+         if (isChunkLoaded(x, z)) {
+             world.getChunkProvider().removeTicket(TicketType.PLUGIN, new ChunkCoordIntPair(x, z), 0, Unit.INSTANCE); // Paper
++            ((ChunkMapDistance) world.getChunkProvider().playerChunkMap.getChunkMapDistanceManager()).removeTickets(ChunkCoordIntPair.pair(x, z), TicketType.DELAY_UNLOAD); // Origami
+         }
+ 
+         return true;

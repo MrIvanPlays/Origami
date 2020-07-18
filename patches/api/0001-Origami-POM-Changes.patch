@@ -5,7 +5,7 @@ Subject: [PATCH] Origami POM Changes
 
 
 diff --git a/pom.xml b/pom.xml
-index 2eb1e40d910aaa100158b682d1eaffb6ca6b915a..bfb150dd17498a49dac14a71f15704142fd69512 100644
+index 08a1a70e2fe582e238fc9c87af69368359646231..b4e375ae5ec40849ffb082fcb8b4f52fb82c11fc 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3,18 +3,18 @@

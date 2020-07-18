@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sat, 18 Jul 2020 09:27:43 +0300
+Subject: [PATCH] Fix weird crash in < java 11
+
+This is VERY VERY VERY weird.
+So when I run origami on java 11, join - everything's working completely fine
+BUT on java 8 (and perhaps lower than java 11) LockSupport makes weirdo behavior with chunk loading when you join
+leading the server to a crash.
+
+I find this fix as a temporary solution rather than a permanent one, everyone's help on that is appreciated.
+
+diff --git a/src/main/java/com/mrivanplays/origami/util/OtherUtilities.java b/src/main/java/com/mrivanplays/origami/util/OtherUtilities.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..a95adaad11e86fd916a5d50f8a4a82374856c1f3
+--- /dev/null
++++ b/src/main/java/com/mrivanplays/origami/util/OtherUtilities.java
+@@ -0,0 +1,14 @@
++package com.mrivanplays.origami.util;
++
++public class OtherUtilities {
++
++    public static int getJavaVersion() {
++        String version = System.getProperty("java.version");
++        if (version.startsWith("1.")) {
++            version = version.substring(2);
++        }
++        int dotPos = version.indexOf('.');
++        int dashPos = version.indexOf('-');
++        return Integer.parseInt(version.substring(0, dotPos > -1 ? dotPos : dashPos > -1 ? dashPos : 1));
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
+index 6beefff203ed6e448898eb5b2e95800def868381..9ef39516c95cf67304ee974b8aea6314f8f0d500 100644
+--- a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
++++ b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
+@@ -127,8 +127,10 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+     }
+ 
+     protected void bk() {
++        if (com.mrivanplays.origami.util.OtherUtilities.getJavaVersion() < 11) { // Origami
+         Thread.yield();
+         LockSupport.parkNanos("waiting for tasks", 100000L);
++        } // Origami
+     }
+ 
+     protected void executeTask(R r0) {

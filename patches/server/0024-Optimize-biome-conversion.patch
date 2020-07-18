@@ -25,7 +25,7 @@ index db198811ddecc00cbd398f3805bdf51b3239f390..14051335963ba733212465b51424f088
          if (biomebase_a.a != null && biomebase_a.b != null && biomebase_a.c != null && biomebase_a.d != null && biomebase_a.e != null && biomebase_a.f != null && biomebase_a.g != null && biomebase_a.j != null) {
              this.m = biomebase_a.a;
 diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
-index 182f7e333956e719b7fe4d9f4734b760037fd00b..cdd43971e7239fefc1063b97853aa31fd0b2b4bd 100644
+index 182f7e333956e719b7fe4d9f4734b760037fd00b..a5e3cdc4591c318482214f0e6905d9d64564128e 100644
 --- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
 +++ b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
 @@ -505,15 +505,23 @@ public class CraftBlock implements Block {
@@ -48,7 +48,7 @@ index 182f7e333956e719b7fe4d9f4734b760037fd00b..cdd43971e7239fefc1063b97853aa31f
 +        BiomeBase cached = BUKKIT_BIOME_TO_NMS_CACHE.get(bio);
 +        if (cached != null) return cached;
 +        BiomeBase ret = IRegistry.BIOME.get(new MinecraftKey(bio.name().toLowerCase(java.util.Locale.ENGLISH)));
-+        synchronized (BUKKIT_BIOME_TO_NMS_CACHE) BUKKIT_BIOME_TO_NMS_CACHE.put(bio, ret);
++        synchronized (BUKKIT_BIOME_TO_NMS_CACHE) { BUKKIT_BIOME_TO_NMS_CACHE.put(bio, ret); }
 +        return ret;
 +        // Origami end
      }

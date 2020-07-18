@@ -3,6 +3,7 @@ From: MrIvanPlays <ivan@mrivanplays.com>
 Date: Thu, 16 Jul 2020 16:03:04 +0300
 Subject: [PATCH] Fix MC-4
 
+Credits to BillyGalbreath and Purpur
 
 diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 index f75c09d44a19f84588f21a55ea8f0dd8ccb539b9..5cd266afed745012dd8b6f5c6ea82b33364c0afa 100644

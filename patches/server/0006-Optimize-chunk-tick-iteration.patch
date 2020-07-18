@@ -3,6 +3,7 @@ From: MrIvanPlays <ivan@mrivanplays.com>
 Date: Thu, 16 Jul 2020 13:16:48 +0300
 Subject: [PATCH] Optimize chunk tick iteration
 
+Credit goes to Spottedleaf and Tuinity
 
 diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 index 0692fe33bb7c4a7bb666920b10f5dd3a0e7a7689..12b88bd42b9d2e8af208e4e651185d50ac52902a 100644

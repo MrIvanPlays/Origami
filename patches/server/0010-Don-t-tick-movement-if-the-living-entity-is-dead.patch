@@ -4,6 +4,7 @@ Date: Thu, 16 Jul 2020 16:12:15 +0300
 Subject: [PATCH] Don't tick movement if the living entity is dead
 
 And don't load chunks if the entity is dead. This fixes server lags
+Credits to BillyGalbreath and Purpur
 
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
 index 9c4b02d776f8b99c6703c8dfc5d9fac0702bbe80..5194de77f5c1577523e5567f426b49f8e959c73d 100644

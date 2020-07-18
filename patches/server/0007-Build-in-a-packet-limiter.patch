@@ -73,14 +73,17 @@ index 0000000000000000000000000000000000000000..715421fd858e82ca129fc50813b4adbc
 +}
 diff --git a/src/main/java/com/mrivanplays/origami/util/PacketBucket.java b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c8da2b4a83e3da4a41eb3ff96737764c3fad61cb
+index 0000000000000000000000000000000000000000..b99fc66b1c18cbb9538bb5e38b288f9f6ab8a7cf
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/util/PacketBucket.java
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,82 @@
 +package com.mrivanplays.origami.util;
 +
 +import java.util.Arrays;
 +
++/**
++ * @author Spottedleaf
++ */
 +public class PacketBucket {
 +
 +    private static final double NANOSECONDS_TO_MILLISECONDS = 1.0e-6; // 1e3 / 1e9

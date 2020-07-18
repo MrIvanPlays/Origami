@@ -3,6 +3,7 @@ From: MrIvanPlays <ivan@mrivanplays.com>
 Date: Fri, 17 Jul 2020 09:38:55 +0300
 Subject: [PATCH] Improve LightEngineStorage NibbleArray iterators
 
+Credits to Spottedleaf and Tuinity
 
 diff --git a/src/main/java/net/minecraft/server/LightEngineStorage.java b/src/main/java/net/minecraft/server/LightEngineStorage.java
 index b98e60772bad7e06845b50fdc11e98c0ea775d3d..23c1ad98a2d7d546648f8ffdf89d694c597f9c35 100644

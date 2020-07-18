@@ -3,6 +3,7 @@ From: MrIvanPlays <ivan@mrivanplays.com>
 Date: Fri, 17 Jul 2020 15:15:51 +0300
 Subject: [PATCH] Writes is going to have NORMAL priority I said
 
+Credits to Spotteadleaf and Tuinity
 
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 index 3cc077a329b1af89ba4b66bf550f647a8b720e75..08097d8892b12c813927fc7f28192c424ebf07d7 100644

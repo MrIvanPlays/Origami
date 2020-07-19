@@ -324,10 +324,10 @@ index a3bce8f13bf278af2d6870891daa9bf692b4e267..6cdf345a4e5d34df6102ea0d50dd97a1
          }
  
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 5544254a655485b8ef9d2883da4d722fa57c63d9..3cc077a329b1af89ba4b66bf550f647a8b720e75 100644
+index 5544254a655485b8ef9d2883da4d722fa57c63d9..b534b8c689d6b2c0d3dc4f6659490b2053511873 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -2024,15 +2024,25 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2024,15 +2024,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      private final void processTrackQueue() {
          this.world.timings.tracker1.startTiming();
          try {
@@ -342,7 +342,12 @@ index 5544254a655485b8ef9d2883da4d722fa57c63d9..3cc077a329b1af89ba4b66bf550f647a
 +                    EntityTracker tracker = this.trackedEntities.get(entity.getId());
 +                    if (tracker != null) {
 +                        tracker.updatePlayers(tracker.tracker.getPlayersInTrackRange());
-+                        tracker.trackerEntry.tick();
++                        world.timings.tracker2.startTiming();
++                        try {
++                            tracker.trackerEntry.tick();
++                        } finally {
++                            world.timings.tracker2.stopTiming();
++                        }
 +                    }
 +                }
              }
@@ -356,7 +361,7 @@ index 5544254a655485b8ef9d2883da4d722fa57c63d9..3cc077a329b1af89ba4b66bf550f647a
          this.world.timings.tracker2.startTiming();
          try {
              for (EntityTracker tracker : this.trackedEntities.values()) {
-@@ -2041,6 +2051,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2041,6 +2056,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          } finally {
              this.world.timings.tracker2.stopTiming();
          }

@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
+Date: Sun, 19 Jul 2020 12:07:47 +0300
+Subject: [PATCH] Distance tick manager timings
+
+
+diff --git a/src/main/java/co/aikar/timings/MinecraftTimings.java b/src/main/java/co/aikar/timings/MinecraftTimings.java
+index dd07223978c9aa648673d96ba7b3db1160d43bbf..71a25120b613aded5044eae66e1ca22e559b9072 100644
+--- a/src/main/java/co/aikar/timings/MinecraftTimings.java
++++ b/src/main/java/co/aikar/timings/MinecraftTimings.java
+@@ -43,6 +43,8 @@ public final class MinecraftTimings {
+     public static final Timing antiXrayUpdateTimer = Timings.ofSafe("anti-xray - update");
+     public static final Timing antiXrayObfuscateTimer = Timings.ofSafe("anti-xray - obfuscate");
+ 
++    public static final Timing distanceManagerTick = Timings.ofSafe("Distance Manager Tick"); // Origami
++
+     private static final Map<Class<?>, String> taskNameCache = new MapMaker().weakKeys().makeMap();
+ 
+     private MinecraftTimings() {}
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index cd19a420e0f243c5f1ce7d266db469550d4d39e6..9d5dce297feb4afd7754374f13eb5631f6352dea 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -636,6 +636,7 @@ public class ChunkProviderServer extends IChunkProvider {
+     }
+ 
+     public boolean tickDistanceManager() { // Paper - private -> public
++        co.aikar.timings.MinecraftTimings.distanceManagerTick.startTiming(); try { // Origami
+         if (chunkMapDistance.delayDistanceManagerTick) return false; // Paper
+         boolean flag = this.chunkMapDistance.a(this.playerChunkMap);
+         boolean flag1 = this.playerChunkMap.b();
+@@ -646,6 +647,7 @@ public class ChunkProviderServer extends IChunkProvider {
+             this.clearCache();
+             return true;
+         }
++        } finally { co.aikar.timings.MinecraftTimings.distanceManagerTick.stopTiming(); } // Origami
+     }
+ 
+     public final boolean isInEntityTickingChunk(Entity entity) { return this.a(entity); } // Paper - OBFHELPER

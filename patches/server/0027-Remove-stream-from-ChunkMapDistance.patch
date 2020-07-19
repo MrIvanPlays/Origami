@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sun, 19 Jul 2020 11:32:41 +0300
+Subject: [PATCH] Remove stream from ChunkMapDistance
+
+
+diff --git a/src/main/java/net/minecraft/server/ArraySetSorted.java b/src/main/java/net/minecraft/server/ArraySetSorted.java
+index 7db6b5850b91588eb4d91f0d7e8b5dbbcb95b7cb..a648c6e2e9aa546be9a9c60a9a896642f775bb91 100644
+--- a/src/main/java/net/minecraft/server/ArraySetSorted.java
++++ b/src/main/java/net/minecraft/server/ArraySetSorted.java
+@@ -58,6 +58,7 @@ public class ArraySetSorted<T> extends AbstractSet<T> {
+     }
+     // Paper end - optimise removeIf
+ 
++    public static <T extends Comparable<T>> ArraySetSorted<T> create(int size) { return a(size); } // Origami - OBFHELPER
+     public static <T extends Comparable<T>> ArraySetSorted<T> a(int i) {
+         return new ArraySetSorted<>(i, (Comparator)Comparator.naturalOrder()); // Paper - decompile fix
+     }
+diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
+index 0400b311fe95a57471e190a346eb13ac793d5104..091a69239729cfbff30ad8cb46eb23dbdeecda7f 100644
+--- a/src/main/java/net/minecraft/server/ChunkMapDistance.java
++++ b/src/main/java/net/minecraft/server/ChunkMapDistance.java
+@@ -160,9 +160,12 @@ public abstract class ChunkMapDistance {
+                 while (longiterator.hasNext()) {
+                     long j = longiterator.nextLong();
+ 
++                    // Origami start
++                    /*
+                     if (this.e(j).stream().anyMatch((ticket) -> {
+                         return ticket.getTicketType() == TicketType.PLAYER;
+-                    })) {
++                    })) */
++                    ArraySetSorted<Ticket<?>> sorted = tickets.get(j);Runnable runnable = () -> {
+                         PlayerChunk playerchunk = playerchunkmap.getUpdatingChunk(j);
+ 
+                         if (playerchunk == null) {
+@@ -177,7 +180,10 @@ public abstract class ChunkMapDistance {
+                                 }, j, false));
+                             });
+                         });
+-                    }
++                    };
++                    if (sorted == null) { sorted = ArraySetSorted.create(4);tickets.put(j, sorted); } else {
++                        for (Ticket<?> ticket : sorted) { if (ticket.getTicketType() == TicketType.PLAYER) { runnable.run(); break; } } }
++                    // Origami end
+                 }
+ 
+                 this.l.clear();

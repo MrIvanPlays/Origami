@@ -1,0 +1,45 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
+Date: Sun, 19 Jul 2020 12:03:44 +0300
+Subject: [PATCH] Optimize collision checking
+
+
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index b641ec1d31f96107d689b3798b5076a9650e3893..107047909123c4a16b24cd653bdaeb00cb4881fb 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -991,7 +991,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                     this.syncPosition();
+                 }
+ 
+-                if (this.teleportPos != null) {
++                if (false && this.teleportPos != null) { // Origami
+                     if (this.e - this.A > 20) {
+                         this.A = this.e;
+                         this.a(this.teleportPos.x, this.teleportPos.y, this.teleportPos.z, this.player.yaw, this.player.pitch);
+@@ -1016,7 +1016,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                         double d2 = this.player.locZ();
+                         double d3 = this.player.locY();
+                         double d4 = packetplayinflying.a(this.player.locX());double toX = d4; // Paper - OBFHELPER
+-                        double d5 = packetplayinflying.b(this.player.locY());
++                        double d5 = packetplayinflying.b(this.player.locY());double toY = d5; // Origami - OBFHELPER
+                         double d6 = packetplayinflying.c(this.player.locZ());double toZ = d6; // Paper - OBFHELPER
+                         float f = packetplayinflying.a(this.player.yaw);
+                         float f1 = packetplayinflying.b(this.player.pitch);
+@@ -1113,6 +1113,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                             }
+ 
+                             this.player.move(EnumMoveType.PLAYER, new Vec3D(d7, d8, d9));
++                            boolean didCollide = toX != this.player.locX() || toY != this.player.locY() || toZ != this.player.locZ(); // Origami
+                             this.player.c(packetplayinflying.b()); // CraftBukkit - SPIGOT-5810, SPIGOT-5835: reset by this.player.move
+                             // Paper start - prevent position desync
+                             if (this.teleportPos != null) {
+@@ -1137,7 +1138,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                             }
+ 
+                             this.player.setLocation(d4, d5, d6, f, f1);
+-                            if (!this.player.noclip && !this.player.isSleeping() && (flag1 && worldserver.getCubes(this.player, axisalignedbb) || this.a((IWorldReader) worldserver, axisalignedbb))) {
++                            if (!this.player.noclip && !this.player.isSleeping() && (flag1 && worldserver.getCubes(this.player, axisalignedbb) || (didCollide && this.a((IWorldReader) worldserver, axisalignedbb)))) { // Origami
+                                 this.a(d0, d1, d2, f, f1);
+                             } else {
+                                 // CraftBukkit start - fire PlayerMoveEvent

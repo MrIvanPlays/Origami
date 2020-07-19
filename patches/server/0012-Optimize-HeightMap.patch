@@ -4,6 +4,19 @@ Date: Fri, 17 Jul 2020 09:34:19 +0300
 Subject: [PATCH] Optimize HeightMap
 
 
+diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
+index 84dc89d961bde16f96dba5cf7f2ce4b85564215a..bd600aea8152c392044e2e75a5e95bad369a49dc 100644
+--- a/src/main/java/net/minecraft/server/Chunk.java
++++ b/src/main/java/net/minecraft/server/Chunk.java
+@@ -375,7 +375,7 @@ public class Chunk implements IChunkAccess {
+             Entry<HeightMap.Type, HeightMap> entry = (Entry) iterator.next();
+ 
+             if (ChunkStatus.FULL.h().contains(entry.getKey())) {
+-                this.a((HeightMap.Type) entry.getKey()).a(((HeightMap) entry.getValue()).a());
++                this.a(entry.getKey()).copyFrom(entry.getValue()); // Origami
+             }
+         }
+ 
 diff --git a/src/main/java/net/minecraft/server/DataBits.java b/src/main/java/net/minecraft/server/DataBits.java
 index 235c9ec37c00ce8838b3e7c02284e402f9d30e38..d0220950a25b5cbad1333383431d76ed76d73602 100644
 --- a/src/main/java/net/minecraft/server/DataBits.java

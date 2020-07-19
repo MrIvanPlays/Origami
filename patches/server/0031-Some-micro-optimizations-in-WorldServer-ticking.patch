@@ -5,30 +5,31 @@ Subject: [PATCH] Some micro optimizations in WorldServer ticking
 
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..b9b412fd1207e972f84a2949afa7a2a66ce98601 100644
+index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..f0f727fa405f0d7eefb87192e0a76c462c0222a0 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -404,9 +404,10 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -404,12 +404,17 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              this.server.getPlayerList().sendAll(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.i, this.thunderLevel));
          }
          // */
 -        for (int idx = 0; idx < this.players.size(); ++idx) {
 -            if (((EntityPlayer) this.players.get(idx)).world == this) {
 -                ((EntityPlayer) this.players.get(idx)).tickWeather();
-+        for (EntityPlayer player : players) { // Origami
-+            if (player.world == this) { // Origami
-+                player.tickWeather(); // Origami
-+                player.updateWeather(this.lastRainLevel, this.rainLevel, this.lastThunderLevel, this.thunderLevel); // Origami
++        // Origami start
++        for (EntityPlayer player : players) {
++            if (player.world == this) {
++                player.tickWeather();
++                player.updateWeather(this.lastRainLevel, this.rainLevel, this.lastThunderLevel, this.thunderLevel);
++                if (flag != this.isRaining()) player.setPlayerWeather((!flag ? WeatherType.DOWNFALL : WeatherType.CLEAR), false);
++                // Origami end
              }
          }
  
-@@ -418,16 +419,22 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-                 }
-             }
-         }
 +        /* // Origami start - moved up
-         for (int idx = 0; idx < this.players.size(); ++idx) {
-             if (((EntityPlayer) this.players.get(idx)).world == this) {
+         if (flag != this.isRaining()) {
+             // Only send weather packets to those affected
+             for (int idx = 0; idx < this.players.size(); ++idx) {
+@@ -423,11 +428,16 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  ((EntityPlayer) this.players.get(idx)).updateWeather(this.lastRainLevel, this.rainLevel, this.lastThunderLevel, this.thunderLevel);
              }
          }
@@ -45,7 +46,7 @@ index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..b9b412fd1207e972f84a2949afa7a2a6
              // CraftBukkit start
              long l = this.worldData.getDayTime() + 24000L;
              TimeSkipEvent event = new TimeSkipEvent(this.getWorld(), TimeSkipEvent.SkipReason.NIGHT_SKIP, (l - l % 24000L) - this.getDayTime());
-@@ -447,7 +454,15 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -447,7 +457,15 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              if (this.getGameRules().getBoolean(GameRules.DO_WEATHER_CYCLE)) {
                  this.clearWeather();
              }

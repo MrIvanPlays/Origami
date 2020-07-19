@@ -5,7 +5,7 @@ Subject: [PATCH] Some micro optimizations in WorldServer ticking
 
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..f0f727fa405f0d7eefb87192e0a76c462c0222a0 100644
+index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..fa6cbfb3eccfc222b879468194832d0dedb28c8d 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -404,12 +404,17 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -62,3 +62,35 @@ index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..f0f727fa405f0d7eefb87192e0a76c46
  
          this.N();
          this.b();
+@@ -595,9 +613,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     }
+ 
+     private void wakeupPlayers() {
+-        (this.players.stream().filter(EntityLiving::isSleeping).collect(Collectors.toList())).forEach((entityplayer) -> { // CraftBukkit - decompile error
++        for (EntityPlayer entityplayer : players) { if (entityplayer.isSleeping()) { // Origami
+             entityplayer.wakeup(false, false);
+-        });
++        }} // Origami
+     }
+ 
+     // Paper start - optimise random block ticking
+@@ -1269,8 +1287,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         // Spigot start
+         if ( entity instanceof EntityHuman )
+         {
+-            this.getMinecraftServer().worldServer.values().stream().map( WorldServer::getWorldPersistentData ).forEach( (worldData) ->
++            for (WorldServer worldServer : getMinecraftServer().worldServer.values()) // Origami
+             {
++                WorldPersistentData worldData = worldServer.getWorldPersistentData(); // Origami
+                 for (Object o : worldData.data.values() )
+                 {
+                     if ( o instanceof WorldMap )
+@@ -1287,7 +1306,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                         }
+                     }
+                 }
+-            } );
++            } // Origami
+         }
+         // Spigot end
+         // Spigot Start

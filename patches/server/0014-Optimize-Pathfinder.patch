@@ -1,10 +1,12 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: MrIvanPlays <ivan@mrivanplays.com>
+From: Aikar <aikar@aikar.co>
 Date: Fri, 17 Jul 2020 13:27:20 +0300
 Subject: [PATCH] Optimize Pathfinder
 
 Streams removed, maps & sets replaced with lists.
 Should help with memory consumption and tick speeds.
+
+Co-Authored by: MrIvanPlays <ivan@mrivanplays.com> - ported to 1.16.1 and origami
 
 diff --git a/src/main/java/net/minecraft/server/Pathfinder.java b/src/main/java/net/minecraft/server/Pathfinder.java
 index b31d1f73ce0f067e352868b53eab7557c34b17eb..1c3a8043e735ec4605635efcfc5deb08a35ea1fd 100644

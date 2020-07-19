@@ -1,9 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: MrIvanPlays <ivan@mrivanplays.com>
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
 Date: Fri, 17 Jul 2020 09:22:54 +0300
 Subject: [PATCH] Fix AdvancementPlayerData leak
 
-Credits to Spottedleaf and Tuinity
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 index d3387a4e16f81b820d40502d2c46ebb3db88f824..0131bc39e8f8504a8f5e1bef74a9f65b87690169 100644

@@ -1,12 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: MrIvanPlays <ivan@mrivanplays.com>
+From: William Blake Galbreath <blake.galbreath@gmail.com>
 Date: Thu, 16 Jul 2020 16:03:04 +0300
 Subject: [PATCH] Fix MC-4
 
-Credits to BillyGalbreath and Purpur
 
 diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
-index f75c09d44a19f84588f21a55ea8f0dd8ccb539b9..5cd266afed745012dd8b6f5c6ea82b33364c0afa 100644
+index f75c09d44a19f84588f21a55ea8f0dd8ccb539b9..df32875011f9866df35a22ba8a3c69a8d24f5c05 100644
 --- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 +++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 @@ -133,6 +133,12 @@ public class EntityTrackerEntry {
@@ -14,7 +13,7 @@ index f75c09d44a19f84588f21a55ea8f0dd8ccb539b9..5cd266afed745012dd8b6f5c6ea82b33
                  boolean flag1 = (vec3d_dx * vec3d_dx + vec3d_dy * vec3d_dy + vec3d_dz * vec3d_dz) >= 7.62939453125E-6D;
                  // Paper end - reduce allocation of Vec3D here
 +                // Origami start - fix MC-4
-+                if (tracker.getEntityType().getKey().toString().contains("item")) { // I dunno understand how to check otherwise so this will stay for now
++                if (tracker instanceof EntityItem) {
 +                    Vec3D loc = PacketPlayOutEntity.decrypt(PacketPlayOutEntity.encrypt(tracker.locX()), PacketPlayOutEntity.encrypt(tracker.locY()), PacketPlayOutEntity.encrypt(tracker.locZ()));
 +                    tracker.setPosition(loc.getX(), loc.getY(), loc.getZ());
 +                }

@@ -1,9 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: MrIvanPlays <ivan@mrivanplays.com>
+From: Aikar <aikar@aikar.co>
 Date: Sat, 18 Jul 2020 14:26:19 +0300
 Subject: [PATCH] Don't load chunks for pyshics
 
-Credits: starlis/empirecraft
 
 diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
 index ff770a3b0e5c4fcccc498ecca51dad9863b0fe0e..d42975c9b0eeb9e8d61708be327bf35529c1811b 100644

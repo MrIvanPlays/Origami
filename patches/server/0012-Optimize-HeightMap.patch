@@ -1,9 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: MrIvanPlays <ivan@mrivanplays.com>
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
 Date: Fri, 17 Jul 2020 09:34:19 +0300
 Subject: [PATCH] Optimize HeightMap
 
-Credits to Spottedleaf and Tuinity
 
 diff --git a/src/main/java/net/minecraft/server/DataBits.java b/src/main/java/net/minecraft/server/DataBits.java
 index 235c9ec37c00ce8838b3e7c02284e402f9d30e38..d0220950a25b5cbad1333383431d76ed76d73602 100644

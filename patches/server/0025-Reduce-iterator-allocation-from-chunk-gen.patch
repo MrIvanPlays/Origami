@@ -1,9 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: MrIvanPlays <ivan@mrivanplays.com>
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
 Date: Sat, 18 Jul 2020 14:54:28 +0300
 Subject: [PATCH] Reduce iterator allocation from chunk gen
 
-Credits: Spottedleaf/Tuinity
+Co-Authored by: MrIvanPlays <ivan@mrivanplays.com> - replaced 1 more iterator allocated
 
 diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 index ac58fcb7985ebe0cfdab6e1400deb37c233ff637..ae90bcef868a04c25255fecdb6d9e5bac85f169e 100644

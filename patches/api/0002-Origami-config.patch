@@ -5,10 +5,10 @@ Subject: [PATCH] Origami config
 
 
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index 457007005f9ff5f6818c559635379a2e698fc4d7..961bdd80d6074291361186624447e6ea9f83f4ad 100644
+index 0653e0ffe96748dc971ec7e8027f8159696adf62..3817c1f7160f0a1cfe2fa3ff6b41bd82cd899c68 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -1387,6 +1387,14 @@ public interface Server extends PluginMessageRecipient {
+@@ -1438,6 +1438,14 @@ public interface Server extends PluginMessageRecipient {
          }
          // Paper end
  

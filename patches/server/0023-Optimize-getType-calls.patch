@@ -1,9 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: MrIvanPlays <ivan@mrivanplays.com>
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
 Date: Sat, 18 Jul 2020 14:40:18 +0300
 Subject: [PATCH] Optimize getType calls
 
-Credits: Spottedleaf/Tuinity
 
 diff --git a/src/main/java/net/minecraft/server/IBlockData.java b/src/main/java/net/minecraft/server/IBlockData.java
 index 10a5901db1e0efe0b7d6958098bb0ae492a9e76f..d73cc0b28ba95f7ff3cfa0b23bdc77466943cb57 100644

@@ -1,0 +1,278 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
+Date: Sat, 18 Jul 2020 09:27:43 +0300
+Subject: [PATCH] Optimized async teleportation
+
+Fixes crash from teleportAsync
+
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index cd19a420e0f243c5f1ce7d266db469550d4d39e6..c121605e11453041e02c62f1e118225f99a782cc 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -120,7 +120,7 @@ public class ChunkProviderServer extends IChunkProvider {
+         return (Chunk)this.getChunkAt(x, z, ChunkStatus.FULL, true);
+     }
+ 
+-    private long chunkFutureAwaitCounter;
++    public long chunkFutureAwaitCounter; // Origami - private -> public
+ 
+     public void getEntityTickingChunkAsync(int x, int z, java.util.function.Consumer<Chunk> onLoad) {
+         if (Thread.currentThread() != this.serverThread) {
+@@ -320,6 +320,118 @@ public class ChunkProviderServer extends IChunkProvider {
+ 
+     private long asyncLoadSeqCounter;
+ 
++    // Origami start
++    public final void getChunkAtAsynchronously(int x, int z, ChunkStatus chunkStatus, boolean gen, boolean allowSubTicketTotal, java.util.function.Consumer<IChunkAccess> consumer) {
++        int chunkStatusTicketLevel = 33 + ChunkStatus.getTicketLevelOffset(chunkStatus);
++        IChunkAccess immediate = getChunkAtImmediately(x, z);
++        if (immediate != null) {
++            if (allowSubTicketTotal || playerChunkMap.getUpdatingChunk(MCUtil.getCoordinateKey(x, z)).getTicketLevel() <= chunkStatusTicketLevel) {
++                if (immediate.getChunkStatus().isAtLeastStatus(chunkStatus)) {
++                    chunkLoadAccept(x, z, immediate, consumer);
++                } else {
++                    if (gen) {
++                        this.getChunkAtAsynchronously(x, z, chunkStatusTicketLevel, consumer);
++                    } else {
++                        chunkLoadAccept(x, z, null, consumer);
++                    }
++                }
++            } else {
++                if (gen || immediate.getChunkStatus().isAtLeastStatus(chunkStatus)) {
++                    this.getChunkAtAsynchronously(x, z, chunkStatusTicketLevel, consumer);
++                } else {
++                    chunkLoadAccept(x, z, null, consumer);
++                }
++            }
++            return;
++        }
++
++        if (gen && !allowSubTicketTotal) {
++            getChunkAtAsynchronously(x, z, chunkStatusTicketLevel, consumer);
++            return;
++        }
++
++        getChunkAtAsynchronously(x, z, 33 + ChunkStatus.getTicketLevelOffset(ChunkStatus.EMPTY), (chunk) -> {
++            if (chunk == null) {
++                throw new IllegalStateException("Chunk cannot be null");
++            }
++
++            if (!chunk.getChunkStatus().isAtLeastStatus(chunkStatus)) {
++                if (gen) {
++                    getChunkAtAsynchronously(x, z, chunkStatusTicketLevel, consumer);
++                } else {
++                    chunkLoadAccept(x, z, null, consumer);
++                }
++            } else {
++                if (allowSubTicketTotal) {
++                    chunkLoadAccept(x, z, chunk, consumer);
++                } else {
++                    getChunkAtAsynchronously(x, z, chunkStatusTicketLevel, consumer);
++                }
++            }
++        });
++    }
++
++    void getChunkAtAsynchronously(int x, int z, int ticketLevel, java.util.function.Consumer<IChunkAccess> consumer) {
++        getChunkAtAsynchronously(x, z, ticketLevel, chunk -> {
++            if (ticketLevel <= 53) {
++                return (CompletableFuture)chunk.getFullChunkFuture();
++            } else {
++                return chunk.getOrCreateFuture(PlayerChunk.getChunkStatus(ticketLevel), playerChunkMap);
++            }
++        }, consumer);
++    }
++
++    void getChunkAtAsynchronously(int x, int z, int ticketLevel,
++                                  java.util.function.Function<PlayerChunk, CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> function,
++                                  java.util.function.Consumer<IChunkAccess> consumer) {
++        if (Thread.currentThread() != this.serverThread) {
++            throw new IllegalStateException();
++        }
++        ChunkCoordIntPair chunkPos = new ChunkCoordIntPair(x, z);
++        Long identifier = Long.valueOf(chunkFutureAwaitCounter++);
++        addTicketAtLevel(TicketType.FUTURE_AWAIT, chunkPos, ticketLevel, identifier);
++        tickDistanceManager();
++
++        PlayerChunk chunk = playerChunkMap.getUpdatingChunk(chunkPos.pair());
++
++        if (chunk == null) {
++            throw new IllegalStateException("Expected playerchunk " + chunkPos + " in world " + world.getWorld().getName());
++        }
++
++        CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> future = function.apply(chunk);
++
++        future.whenCompleteAsync((either, throwable) -> {
++            try {
++                if (throwable != null) {
++                    if (throwable instanceof ThreadDeath) throw (ThreadDeath) throwable;
++                    MinecraftServer.LOGGER.fatal("Failed to complete future await for chunk " + chunkPos.toString() + " in world " + world.getWorld().getName());
++                } else if (either.right().isPresent()) {
++                    MinecraftServer.LOGGER.fatal("Failed to complete future await for chunk " + chunkPos.toString() + " in world " + world.getWorld().getName());
++                }
++
++                try {
++                    if (consumer != null) {
++                        consumer.accept(either == null ? null : either.left().orElse(null));
++                    }
++                } catch (Throwable thr) {
++                    if (thr instanceof ThreadDeath) throw (ThreadDeath) thr;
++                    MinecraftServer.LOGGER.fatal("Load callback for future await failed " + chunkPos + " in world " + world.getWorld().getName());
++                }
++            } finally {
++                addTicketAtLevel(TicketType.UNKNOWN, chunkPos, ticketLevel, chunkPos);
++                removeTicketAtLevel(TicketType.FUTURE_AWAIT, chunkPos, ticketLevel, identifier);
++            }
++        }, serverThreadQueue);
++    }
++
++    void chunkLoadAccept(int x, int z, IChunkAccess chunk, java.util.function.Consumer<IChunkAccess> consumer) {
++        try { consumer.accept(chunk); } catch (Throwable t) {
++            if (t instanceof ThreadDeath) throw (ThreadDeath) t;
++            MinecraftServer.LOGGER.error("Load callback for chunk " + x + "," + z + " in world '" + world.getWorld().getName(), "' threw an exception", t);
++        }
++    }
++    // Origami end
++
+     public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> getChunkAtAsynchronously(int x, int z, boolean gen, boolean isUrgent) {
+         if (Thread.currentThread() != this.serverThread) {
+             CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> future = new CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>();
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index 5194de77f5c1577523e5567f426b49f8e959c73d..0f698f06a0bb59316689ec63aa92a497f588ab26 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -212,6 +212,13 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+     }
+     // CraftBukkit end
+ 
++    // Origami start
++    public final AxisAlignedBB getBoundingBoxAt(double x, double y, double z) {
++        double widthHalf = (double) size.width / 2.0;double height = size.height;
++        return new AxisAlignedBB(x - widthHalf, y, z - widthHalf, x + widthHalf, y + height, z + widthHalf);
++    }
++    // Origami end
++
+     // Paper start
+     /**
+      * Overriding this field will cause memory leaks.
+diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
+index 6cdf345a4e5d34df6102ea0d50dd97a1846c1b5e..4f669097c16f2d594d9905e9c796ccf973cb58ad 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunk.java
++++ b/src/main/java/net/minecraft/server/PlayerChunk.java
+@@ -494,6 +494,7 @@ public class PlayerChunk {
+         // Paper end - per player view distance
+     }
+ 
++    public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> getOrCreateFuture(ChunkStatus status, PlayerChunkMap chunkMap) { return a(status, chunkMap); } // Origami - OBFHELPER
+     public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(ChunkStatus chunkstatus, PlayerChunkMap playerchunkmap) {
+         int i = chunkstatus.c();
+         CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> completablefuture = (CompletableFuture) this.statusFutures.get(i);
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..8776972c5b9bda12f7495e382358c7fed38e5fc6 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -90,6 +90,60 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     private final boolean Q;
+     long lastMidTickExecuteFailure; // Origami
+ 
++    // Origami start
++    public final void loadChunksForMoveAsync(AxisAlignedBB aabb, double toX, double toZ,
++                                             java.util.function.Consumer<List<IChunkAccess>> onLoad) {
++        if (Thread.currentThread() != this.serverThread) {
++            getChunkProvider().serverThreadQueue.execute(() -> loadChunksForMoveAsync(aabb, toX, toZ, onLoad));
++            return;
++        }
++        List<IChunkAccess> ret = Lists.newArrayList();
++        it.unimi.dsi.fastutil.ints.IntArrayList ticketLevels = new it.unimi.dsi.fastutil.ints.IntArrayList();
++
++        int minBlockX = MathHelper.floor(aabb.minX - 1.0E-7D) - 3;
++        int maxBlockX = MathHelper.floor(aabb.maxX + 1.0E-7D) + 3;
++        int minBlockZ = MathHelper.floor(aabb.minZ - 1.0E-7D) - 3;
++        int maxBlockZ = MathHelper.floor(aabb.maxZ + 1.0E-7D) + 3;
++
++        int minChunkX = minBlockX >> 4;
++        int maxChunkX = maxBlockX >> 4;
++        int minChunkZ = minBlockZ >> 4;
++        int maxChunkZ = maxBlockZ >> 4;
++
++        ChunkProviderServer chunkProvider = getChunkProvider();
++        int requiredChunks = (maxChunkX - minChunkX + 1) * (maxChunkZ - minChunkZ + 1);
++        int[] loadedChunks = new int[1];
++        Long holderIdentifier = Long.valueOf(chunkProvider.chunkFutureAwaitCounter++);
++
++        java.util.function.Consumer<IChunkAccess> consumer = (chunk) -> {
++            if (chunk != null) {
++                int ticketLevel = Math.max(33, chunkProvider.playerChunkMap.getUpdatingChunk(chunk.getPos().pair()).getTicketLevel());
++                ret.add(chunk);
++                ticketLevels.add(ticketLevel);
++                chunkProvider.addTicketAtLevel(TicketType.FUTURE_AWAIT, chunk.getPos(), ticketLevel, holderIdentifier);
++            }
++            if (++loadedChunks[0] == requiredChunks) {
++                try {
++                    onLoad.accept(java.util.Collections.unmodifiableList(ret));
++                } finally {
++                    for (int i = 0; i < ret.size(); i++) {
++                        ChunkCoordIntPair chunkPos = ret.get(i).getPos();
++                        int ticketLevel = ticketLevels.get(i);
++
++                        chunkProvider.addTicketAtLevel(TicketType.UNKNOWN, chunkPos, ticketLevel, chunkPos);
++                        chunkProvider.removeTicketAtLevel(TicketType.FUTURE_AWAIT, chunkPos, ticketLevel, holderIdentifier);
++                    }
++                }
++            }
++        };
++
++        for (int cx = minChunkX; cx <= maxChunkX; cx++) {
++            for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
++                chunkProvider.getChunkAtAsynchronously(cx, cz, ChunkStatus.FULL, true, false, consumer);
++            }
++        }
++    }
++    // Origami end
+ 
+     // CraftBukkit start
+     private int tickPosition;
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+index d1df4e5799de4bf0a1fcc6940e2498374cd3db9d..15dc87c319138427193b5d88a06b751727941d4d 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+@@ -497,6 +497,8 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+ 
+     @Override// Paper start
+     public java.util.concurrent.CompletableFuture<Boolean> teleportAsync(Location loc, @javax.annotation.Nonnull org.bukkit.event.player.PlayerTeleportEvent.TeleportCause cause) {
++        // Origami start - reinplement
++        /*
+         net.minecraft.server.PlayerChunkMap playerChunkMap = ((CraftWorld) loc.getWorld()).getHandle().getChunkProvider().playerChunkMap;
+         java.util.concurrent.CompletableFuture<Boolean> future = new java.util.concurrent.CompletableFuture<>();
+ 
+@@ -514,6 +516,30 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+             return null;
+         });
+         return future;
++         */
++        Preconditions.checkNotNull(loc, "location");
++        loc.checkFinite();
++        Location locClone = loc.clone();
++
++        net.minecraft.server.WorldServer world = ((CraftWorld) locClone.getWorld()).getHandle();
++        java.util.concurrent.CompletableFuture<Boolean> ret = new java.util.concurrent.CompletableFuture<>();
++
++        world.loadChunksForMoveAsync(getHandle().getBoundingBoxAt(locClone.getX(), locClone.getY(), locClone.getZ()), loc.getX(), loc.getZ(), (list) -> {
++            net.minecraft.server.ChunkProviderServer chunkProviderServer = world.getChunkProvider();
++            for (net.minecraft.server.IChunkAccess chunk : list) {
++                chunkProviderServer.addTicketAtLevel(net.minecraft.server.TicketType.POST_TELEPORT, chunk.getPos(), 33, this.getEntityId());
++            }
++            net.minecraft.server.MinecraftServer.getServer().scheduleOnMain(() -> {
++                try {
++                    ret.complete(this.teleport(locClone, cause) ? Boolean.TRUE : Boolean.FALSE);
++                } catch (Throwable t) {
++                    if (t instanceof ThreadDeath) throw (ThreadDeath) t;
++                    ret.completeExceptionally(t);
++                }
++            });
++        });
++        return ret;
++        // Origami end
+     }
+     // Paper end
+ 

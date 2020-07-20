@@ -18,10 +18,10 @@ index dd07223978c9aa648673d96ba7b3db1160d43bbf..71a25120b613aded5044eae66e1ca22e
  
      private MinecraftTimings() {}
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index cd19a420e0f243c5f1ce7d266db469550d4d39e6..9d5dce297feb4afd7754374f13eb5631f6352dea 100644
+index c121605e11453041e02c62f1e118225f99a782cc..21208ebc4e12b5c08d56a88ec447cf982e2e3057 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-@@ -636,6 +636,7 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -748,6 +748,7 @@ public class ChunkProviderServer extends IChunkProvider {
      }
  
      public boolean tickDistanceManager() { // Paper - private -> public
@@ -29,7 +29,7 @@ index cd19a420e0f243c5f1ce7d266db469550d4d39e6..9d5dce297feb4afd7754374f13eb5631
          if (chunkMapDistance.delayDistanceManagerTick) return false; // Paper
          boolean flag = this.chunkMapDistance.a(this.playerChunkMap);
          boolean flag1 = this.playerChunkMap.b();
-@@ -646,6 +647,7 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -758,6 +759,7 @@ public class ChunkProviderServer extends IChunkProvider {
              this.clearCache();
              return true;
          }

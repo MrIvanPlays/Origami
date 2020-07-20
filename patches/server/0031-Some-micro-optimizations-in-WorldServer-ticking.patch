@@ -5,10 +5,10 @@ Subject: [PATCH] Some micro optimizations in WorldServer ticking
 
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..fa6cbfb3eccfc222b879468194832d0dedb28c8d 100644
+index 8776972c5b9bda12f7495e382358c7fed38e5fc6..102c4413a1b14670a2ad188bc6e3099e9fe932a2 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -404,12 +404,17 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -458,12 +458,17 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              this.server.getPlayerList().sendAll(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.i, this.thunderLevel));
          }
          // */
@@ -29,7 +29,7 @@ index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..fa6cbfb3eccfc222b879468194832d0d
          if (flag != this.isRaining()) {
              // Only send weather packets to those affected
              for (int idx = 0; idx < this.players.size(); ++idx) {
-@@ -423,11 +428,16 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -477,11 +482,16 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  ((EntityPlayer) this.players.get(idx)).updateWeather(this.lastRainLevel, this.rainLevel, this.lastThunderLevel, this.thunderLevel);
              }
          }
@@ -46,7 +46,7 @@ index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..fa6cbfb3eccfc222b879468194832d0d
              // CraftBukkit start
              long l = this.worldData.getDayTime() + 24000L;
              TimeSkipEvent event = new TimeSkipEvent(this.getWorld(), TimeSkipEvent.SkipReason.NIGHT_SKIP, (l - l % 24000L) - this.getDayTime());
-@@ -447,7 +457,15 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -501,7 +511,15 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              if (this.getGameRules().getBoolean(GameRules.DO_WEATHER_CYCLE)) {
                  this.clearWeather();
              }
@@ -62,7 +62,7 @@ index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..fa6cbfb3eccfc222b879468194832d0d
  
          this.N();
          this.b();
-@@ -595,9 +613,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -649,9 +667,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
  
      private void wakeupPlayers() {
@@ -74,7 +74,7 @@ index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..fa6cbfb3eccfc222b879468194832d0d
      }
  
      // Paper start - optimise random block ticking
-@@ -1269,8 +1287,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1323,8 +1341,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // Spigot start
          if ( entity instanceof EntityHuman )
          {
@@ -85,7 +85,7 @@ index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..fa6cbfb3eccfc222b879468194832d0d
                  for (Object o : worldData.data.values() )
                  {
                      if ( o instanceof WorldMap )
-@@ -1287,7 +1306,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1341,7 +1360,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                          }
                      }
                  }

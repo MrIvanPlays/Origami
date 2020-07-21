@@ -1036,7 +1036,7 @@ index 102c4413a1b14670a2ad188bc6e3099e9fe932a2..b901ab905f974307df1ee8f5708ce496
          // CraftBukkit end
      }
 +
-+    // Tuinity start - optimise collision
++    // Origami start
 +    public boolean collidesWithAnyBlockOrWorldBorder(@Nullable Entity entity, AxisAlignedBB axisalignedbb, boolean loadChunks) {
 +        if (entity != null) {
 +            if (this.getWorldBorder().isCollidingOnBorderEdge(axisalignedbb)) {
@@ -1198,7 +1198,7 @@ index 102c4413a1b14670a2ad188bc6e3099e9fe932a2..b901ab905f974307df1ee8f5708ce496
 +        return this.collidesWithAnyBlockOrWorldBorder(entity, axisalignedbb, loadChunks) || this.hardCollidesWithAnyEntities(entity, axisalignedbb, null);
 +    }
 +
-+    // Tuinity start - optimise collision
++    // Origami start
 +    public void getCollisionsForBlocksOrWorldBorder(@Nullable Entity entity, AxisAlignedBB axisalignedbb, List<AxisAlignedBB> list, boolean loadChunks) {
 +        if (entity != null) {
 +            if (this.getWorldBorder().isCollidingOnBorderEdge(axisalignedbb)) {
@@ -1376,5 +1376,5 @@ index 102c4413a1b14670a2ad188bc6e3099e9fe932a2..b901ab905f974307df1ee8f5708ce496
 +    public boolean getCubes(@Nullable Entity entity, AxisAlignedBB axisalignedbb, Predicate<Entity> predicate) {
 +        return !this.collidesWithAnyBlockOrWorldBorder(entity, axisalignedbb, true) && !this.hardCollidesWithAnyEntities(entity, axisalignedbb, predicate);
 +    }
-+    // Tuinity end - optimise collision
++    // Origami end
  }

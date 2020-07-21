@@ -1,0 +1,77 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Tue, 21 Jul 2020 09:21:28 +0300
+Subject: [PATCH] Add option to not allow redstone in the nether
+
+
+diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+index 40f826409b71d840cd21cb9bae43d60dad0f8182..f386e89735bcd9d3623c22ff0cc7cfe25cb4c384 100644
+--- a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
++++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+@@ -142,4 +142,9 @@ public final class OrigamiConfig {
+             TicketType.DELAY_UNLOAD.loadPeriod = delayChunkUnloadsBy;
+         }
+     }
++
++    public static boolean allowRedstoneInNether = true;
++    private static void allowRedstoneInNether() {
++        allowRedstoneInNether = getBoolean("allow-redstone-in-nether", allowRedstoneInNether);
++    }
+ }
+diff --git a/src/main/java/net/minecraft/server/ItemBlock.java b/src/main/java/net/minecraft/server/ItemBlock.java
+index 63d2294da4f0da628e62b782b71e34cb3eb959b5..8a6278f3c383134c14c8b2cf9dbf2f73d147c570 100644
+--- a/src/main/java/net/minecraft/server/ItemBlock.java
++++ b/src/main/java/net/minecraft/server/ItemBlock.java
+@@ -62,6 +62,7 @@ public class ItemBlock extends Item {
+                         // CraftBukkit start
+                         if (blockstate != null) {
+                             org.bukkit.event.block.BlockPlaceEvent placeEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callBlockPlaceEvent((WorldServer) world, entityhuman, blockactioncontext1.getHand(), blockstate, blockposition.getX(), blockposition.getY(), blockposition.getZ());
++                            ItemStack.redstoneCheck(world, java.util.Collections.singletonList(blockstate), placeEvent); // Origami
+                             if (placeEvent != null && (placeEvent.isCancelled() || !placeEvent.canBuild())) {
+                                 blockstate.update(true, false);
+                                 return EnumInteractionResult.FAIL;
+diff --git a/src/main/java/net/minecraft/server/ItemStack.java b/src/main/java/net/minecraft/server/ItemStack.java
+index 3c56053e3075173edd22eccb277f51a12287ab56..262a982d2a45fc1d97b10153d6f4fc4a61aa99c5 100644
+--- a/src/main/java/net/minecraft/server/ItemStack.java
++++ b/src/main/java/net/minecraft/server/ItemStack.java
+@@ -27,6 +27,7 @@ import java.util.List;
+ import java.util.Map;
+ 
+ import org.bukkit.Location;
++import org.bukkit.Material; // Origami
+ import org.bukkit.TreeType;
+ import org.bukkit.block.BlockState;
+ import org.bukkit.craftbukkit.block.CraftBlock;
+@@ -280,6 +281,8 @@ public final class ItemStack {
+                     placeEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callBlockPlaceEvent(world, entityhuman, enumhand, blocks.get(0), blockposition.getX(), blockposition.getY(), blockposition.getZ());
+                 }
+ 
++                redstoneCheck(world, blocks, placeEvent); // Origami
++
+                 if (placeEvent != null && (placeEvent.isCancelled() || !placeEvent.canBuild())) {
+                     enuminteractionresult = EnumInteractionResult.FAIL; // cancel placement
+                     // PAIL: Remove this when MC-99075 fixed
+@@ -371,6 +374,23 @@ public final class ItemStack {
+         }
+     }
+ 
++    // Origami start
++    public static void redstoneCheck(World world, List<BlockState> blocks, org.bukkit.event.block.BlockPlaceEvent placeEvent) {
++        if (!com.mrivanplays.origami.OrigamiConfig.allowRedstoneInNether && world.getWorld().getName().equalsIgnoreCase("world_nether")) { // TODO: better world check
++            boolean hasRedstone = false;
++            for (BlockState block : blocks) {
++                Material type = block.getType();
++                if (type == Material.REDSTONE || type == Material.REDSTONE_BLOCK || type == Material.REDSTONE_TORCH || type == Material.REDSTONE_WALL_TORCH ||
++                        type == Material.TARGET || type == Material.REPEATER || type == Material.COMPARATOR || type == Material.OBSERVER || type == Material.TRAPPED_CHEST ||
++                        org.bukkit.Tag.PRESSURE_PLATES.getValues().contains(type)) {
++                    hasRedstone = true; break;
++                }
++            }
++            if (hasRedstone) placeEvent.setBuild(false);
++        }
++    }
++    // Origami end
++
+     public float a(IBlockData iblockdata) {
+         return this.getItem().getDestroySpeed(this, iblockdata);
+     }

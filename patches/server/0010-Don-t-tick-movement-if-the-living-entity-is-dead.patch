@@ -19,10 +19,10 @@ index 9c4b02d776f8b99c6703c8dfc5d9fac0702bbe80..5194de77f5c1577523e5567f426b49f8
  
      public void c(Vec3D vec3d) {
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index c388999d104682b84b5f0936efce9d270247d08c..c386edac05bfae0ab07fbccc253e2bf747d9e027 100644
+index b5c595a4b5d74366f4cdc927673ac60923e46e90..89e17bbeb6cb3eca58af69eb460fb27b370a32dc 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -2465,7 +2465,7 @@ public abstract class EntityLiving extends Entity {
+@@ -2462,7 +2462,7 @@ public abstract class EntityLiving extends Entity {
              }
          }
  

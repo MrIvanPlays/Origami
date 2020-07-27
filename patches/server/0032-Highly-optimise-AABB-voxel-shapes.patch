@@ -626,7 +626,7 @@ index b99e31272919b62018584284dcc756c918116dd5..5261ebd290a9c910d04e44e8b2af568c
          long endTime = System.nanoTime();
          long remaining = (TICK_TIME - (endTime - lastTick)) - catchupTime;
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 107047909123c4a16b24cd653bdaeb00cb4881fb..0ac22fef9a1bdbfa6d03296362146d1fff4bfb1a 100644
+index a29686baa3e9c44f926b864b3c282a2e41aa9072..5f7fb0ebfca732369021e31664c6a15d5870d61f 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -338,19 +338,24 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -1028,7 +1028,7 @@ index b651eb87bb23deeb2a3f4a1c626ddde9b11a7b9e..b9fa8b666ca0fc3dfffcdea2235c4367
          return this.j.d();
      }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 102c4413a1b14670a2ad188bc6e3099e9fe932a2..b901ab905f974307df1ee8f5708ce4965162b523 100644
+index 102c4413a1b14670a2ad188bc6e3099e9fe932a2..7749346312006d0bfc10d1575beffad9a99fe8cc 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -2226,4 +2226,346 @@ public class WorldServer extends World implements GeneratorAccessSeed {

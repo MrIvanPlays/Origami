@@ -5,10 +5,10 @@ Subject: [PATCH] Better handling of tracker timings in PlayerChunkMap
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 59969174d3f3eba5df17fd71701b02342a388056..58f3967c3f23e01c11235aa3fb0275e91fa48011 100644
+index 5f4dcd15d62c3f4da3c4926937f5bdaff19eb8bf..7be3f23b31d2b59e58dc02b73bf34803854261c0 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -2073,7 +2073,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2075,7 +2075,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          PlayerChunkMap.EntityTracker playerchunkmap_entitytracker;
          ObjectIterator objectiterator;
          world.timings.tracker1.startTiming(); // Paper
@@ -17,7 +17,7 @@ index 59969174d3f3eba5df17fd71701b02342a388056..58f3967c3f23e01c11235aa3fb0275e9
          for (objectiterator = this.trackedEntities.values().iterator(); objectiterator.hasNext(); playerchunkmap_entitytracker.trackerEntry.a()) {
              playerchunkmap_entitytracker = (PlayerChunkMap.EntityTracker) objectiterator.next();
              SectionPosition sectionposition = playerchunkmap_entitytracker.e;
-@@ -2090,17 +2090,22 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2092,17 +2092,22 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                  playerchunkmap_entitytracker.e = sectionposition1;
              }
          }

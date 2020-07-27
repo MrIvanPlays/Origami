@@ -177,7 +177,7 @@ index 5c789b25f1df2eae8ea8ceb4ba977ba336fe6d5e..c44182b2a6a89105c8db09f403a2b268
          return this.loadPeriod;
      }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 500b5213a9e51c4d0a1a328a047fcdc45c053e8e..f082690ed9c8d082df68c88ba2bcd8956225b1db 100644
+index 3c2da47c3578eabc3ca0939b26060fc165b53c3e..d6f7f04d8023bd58e87af350953d64d260621722 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 @@ -495,6 +495,7 @@ public class CraftWorld implements World {

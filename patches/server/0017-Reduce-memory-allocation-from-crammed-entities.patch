@@ -41,10 +41,10 @@ index 0000000000000000000000000000000000000000..3e4538260ba0cba5443a3556481a5e52
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index c386edac05bfae0ab07fbccc253e2bf747d9e027..3db2dab5e44cb4b8ca23b2b989137f1b1003180d 100644
+index 89e17bbeb6cb3eca58af69eb460fb27b370a32dc..61b3b6a6d7b6d14c367cf491c190498006db59b7 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -2835,7 +2835,10 @@ public abstract class EntityLiving extends Entity {
+@@ -2832,7 +2832,10 @@ public abstract class EntityLiving extends Entity {
              return;
          }
          // Paper - end don't run getEntities if we're not going to use its result
@@ -56,7 +56,7 @@ index c386edac05bfae0ab07fbccc253e2bf747d9e027..3db2dab5e44cb4b8ca23b2b989137f1b
  
          if (!list.isEmpty()) {
              // Paper - move up
-@@ -2864,7 +2867,9 @@ public abstract class EntityLiving extends Entity {
+@@ -2861,7 +2864,9 @@ public abstract class EntityLiving extends Entity {
                  this.C(entity);
              }
          }

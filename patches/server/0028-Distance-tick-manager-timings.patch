@@ -18,7 +18,7 @@ index dd07223978c9aa648673d96ba7b3db1160d43bbf..71a25120b613aded5044eae66e1ca22e
  
      private MinecraftTimings() {}
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index c121605e11453041e02c62f1e118225f99a782cc..21208ebc4e12b5c08d56a88ec447cf982e2e3057 100644
+index e7d6fc1572be20645658e2afa5d5d213963bf57a..558505bdf06e878ddd969e09bc697ebce1746049 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 @@ -748,6 +748,7 @@ public class ChunkProviderServer extends IChunkProvider {

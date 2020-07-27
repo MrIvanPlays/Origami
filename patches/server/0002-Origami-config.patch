@@ -137,7 +137,7 @@ index 8b2755a3b95e472e884976195d1d3551fc260e39..760563751a33a91b1309f11bb4489a41
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index d8103ab0d542ced4f30b88ceb4fc4c3eedd5d9a0..17ed181b5f6630efb4de59ecd1459b561f3506b4 100644
+index 6282a05ae855a6b55eec4980fbc1b356f65f500e..008c7d8040ac57b53b19220666a81a6302f5b38d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -848,6 +848,7 @@ public final class CraftServer implements Server {
@@ -148,7 +148,7 @@ index d8103ab0d542ced4f30b88ceb4fc4c3eedd5d9a0..17ed181b5f6630efb4de59ecd1459b56
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -2231,6 +2232,9 @@ public final class CraftServer implements Server {
+@@ -2238,6 +2239,9 @@ public final class CraftServer implements Server {
              return com.destroystokyo.paper.PaperConfig.config;
          }
  

@@ -5,7 +5,7 @@ Subject: [PATCH] Writes is going to have NORMAL priority I said
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index b534b8c689d6b2c0d3dc4f6659490b2053511873..59969174d3f3eba5df17fd71701b02342a388056 100644
+index 1b2f4f1fb60483cae0b829bd14a04487a7e62bd1..5f4dcd15d62c3f4da3c4926937f5bdaff19eb8bf 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -959,7 +959,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {

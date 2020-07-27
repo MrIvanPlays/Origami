@@ -17,7 +17,7 @@ index 0692fe33bb7c4a7bb666920b10f5dd3a0e7a7689..12b88bd42b9d2e8af208e4e651185d50
                      // re-schedule eventually
                      toTick.tickState = STATE_SCHEDULED;
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index ef980f9859d1d7d0d5e13d0d70e998055f92135e..cd19a420e0f243c5f1ce7d266db469550d4d39e6 100644
+index 3a5a9aba111fed8b68818b95332b723ee2bce2ac..41e3a9934eec0a2ccb77bf217d94b2079b22afc2 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 @@ -734,7 +734,7 @@ public class ChunkProviderServer extends IChunkProvider {
@@ -49,7 +49,7 @@ index ef980f9859d1d7d0d5e13d0d70e998055f92135e..cd19a420e0f243c5f1ce7d266db46955
      private void tickChunks() {
          long i = this.world.getTime();
          long j = i - this.lastTickTime;
-@@ -820,19 +826,21 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -821,19 +827,21 @@ public class ChunkProviderServer extends IChunkProvider {
              //List<PlayerChunk> list = Lists.newArrayList(this.playerChunkMap.f()); // Paper
              //Collections.shuffle(list); // Paper
              // Paper - moved up
@@ -79,7 +79,7 @@ index ef980f9859d1d7d0d5e13d0d70e998055f92135e..cd19a420e0f243c5f1ce7d266db46955
                          ChunkCoordIntPair chunkcoordintpair = playerchunk.i();
  
                          if (!this.playerChunkMap.isOutsideOfRange(playerchunk, chunkcoordintpair, false)) { // Paper - optimise isOutsideOfRange
-@@ -844,11 +852,24 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -845,11 +853,24 @@ public class ChunkProviderServer extends IChunkProvider {
                              this.world.timings.chunkTicks.startTiming(); // Spigot // Paper
                              this.world.a(chunk, k);
                              this.world.timings.chunkTicks.stopTiming(); // Spigot // Paper
@@ -106,7 +106,7 @@ index ef980f9859d1d7d0d5e13d0d70e998055f92135e..cd19a420e0f243c5f1ce7d266db46955
              this.world.getMethodProfiler().enter("customSpawners");
              if (flag1) {
                  try (co.aikar.timings.Timing ignored = this.world.timings.miscMobSpawning.startTiming()) { // Paper - timings
-@@ -1002,6 +1023,7 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -1003,6 +1024,7 @@ public class ChunkProviderServer extends IChunkProvider {
          }
  
          // Paper start
@@ -114,7 +114,7 @@ index ef980f9859d1d7d0d5e13d0d70e998055f92135e..cd19a420e0f243c5f1ce7d266db46955
          private long lastMidTickChunkTask = 0;
          public boolean pollChunkLoadTasks() {
              if (com.destroystokyo.paper.io.chunk.ChunkTaskManager.pollChunkWaitQueue() || ChunkProviderServer.this.world.asyncChunkTaskManager.pollNextChunkTask()) {
-@@ -1034,6 +1056,7 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -1035,6 +1057,7 @@ public class ChunkProviderServer extends IChunkProvider {
                  }
              }
          }
@@ -324,10 +324,10 @@ index a3bce8f13bf278af2d6870891daa9bf692b4e267..6cdf345a4e5d34df6102ea0d50dd97a1
          }
  
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 5544254a655485b8ef9d2883da4d722fa57c63d9..b534b8c689d6b2c0d3dc4f6659490b2053511873 100644
+index ad8a00e0fb5da5df1eb3afbf9ea50acfc89a5ff1..1b2f4f1fb60483cae0b829bd14a04487a7e62bd1 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -2024,15 +2024,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2026,15 +2026,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      private final void processTrackQueue() {
          this.world.timings.tracker1.startTiming();
          try {
@@ -361,7 +361,7 @@ index 5544254a655485b8ef9d2883da4d722fa57c63d9..b534b8c689d6b2c0d3dc4f6659490b20
          this.world.timings.tracker2.startTiming();
          try {
              for (EntityTracker tracker : this.trackedEntities.values()) {
-@@ -2041,6 +2056,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2043,6 +2058,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          } finally {
              this.world.timings.tracker2.stopTiming();
          }

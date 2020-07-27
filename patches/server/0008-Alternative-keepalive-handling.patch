@@ -36,7 +36,7 @@ index 8e93f1540ba5f995489c1fbcec70d10b011cd9c3..b7665fd239a9700e0b8ee9c2d992a99c
          return this.a;
      }
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index a31d100315e237b87bc5be40a1cf68f5729301a7..b641ec1d31f96107d689b3798b5076a9650e3893 100644
+index 129e7066003034fa2ee1b04e5178c2277acd46f5..00032d9db0e70a619caf6dc4417e87013df59dc1 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -69,6 +69,7 @@ public class PlayerConnection implements PacketListenerPlayIn {

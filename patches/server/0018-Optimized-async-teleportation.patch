@@ -6,7 +6,7 @@ Subject: [PATCH] Optimized async teleportation
 Fixes crash from teleportAsync
 
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index cd19a420e0f243c5f1ce7d266db469550d4d39e6..c121605e11453041e02c62f1e118225f99a782cc 100644
+index 41e3a9934eec0a2ccb77bf217d94b2079b22afc2..e7d6fc1572be20645658e2afa5d5d213963bf57a 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 @@ -120,7 +120,7 @@ public class ChunkProviderServer extends IChunkProvider {

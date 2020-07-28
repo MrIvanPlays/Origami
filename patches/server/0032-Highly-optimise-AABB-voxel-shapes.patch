@@ -1028,10 +1028,10 @@ index b651eb87bb23deeb2a3f4a1c626ddde9b11a7b9e..b9fa8b666ca0fc3dfffcdea2235c4367
          return this.j.d();
      }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 102c4413a1b14670a2ad188bc6e3099e9fe932a2..7749346312006d0bfc10d1575beffad9a99fe8cc 100644
+index 2a842897d1b9a1442ec28c4c28cae982ce5c250e..b55222ce15700c0c777515809130c01713f5935e 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -2226,4 +2226,346 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -2228,4 +2228,346 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // CraftBukkit end
      }

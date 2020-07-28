@@ -168,7 +168,7 @@ index 6cdf345a4e5d34df6102ea0d50dd97a1846c1b5e..4f669097c16f2d594d9905e9c796ccf9
          int i = chunkstatus.c();
          CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> completablefuture = (CompletableFuture) this.statusFutures.get(i);
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index b81331bcdf320f79f1a9b54b67950aeaa1e7761f..8776972c5b9bda12f7495e382358c7fed38e5fc6 100644
+index ee2b8b217c16ddaa76ed102659f97b85ff6366eb..6f80f3c88a6b50f3bb8c2c7270419b97f1fe21f0 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -90,6 +90,60 @@ public class WorldServer extends World implements GeneratorAccessSeed {

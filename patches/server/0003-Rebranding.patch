@@ -5,7 +5,7 @@ Subject: [PATCH] Rebranding
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java
-index 741c06a27e664211a7023a6369f8e69cbb41a321..7cd539af894c37295c0e020447afe4aa30beec9b 100644
+index 56e4359ba32339e1bef58061585ff3e12e4215f3..f3e9028c1a38c49bedecd3936d66f4d3688499d0 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperConfig.java
 +++ b/src/main/java/com/destroystokyo/paper/PaperConfig.java
 @@ -97,7 +97,7 @@ public class PaperConfig {

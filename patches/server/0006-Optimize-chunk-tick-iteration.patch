@@ -5,10 +5,10 @@ Subject: [PATCH] Optimize chunk tick iteration
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
-index 0692fe33bb7c4a7bb666920b10f5dd3a0e7a7689..12b88bd42b9d2e8af208e4e651185d50ac52902a 100644
+index e7624948ea4aa1a07d84ed3d295cfe2dd354fd14..dfc0d42322c1008ba4a74c34527c02a91d8bc95f 100644
 --- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 +++ b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
-@@ -296,6 +296,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+@@ -307,6 +307,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
                      if (toTick.tickState == STATE_TICKING) {
                          toTick.tickState = STATE_TICKED;
                      } // else it's STATE_CANCELLED_TICK
@@ -382,7 +382,7 @@ index 88ca677896f13e46a31411107f50a8c88c84c460..0883d21c05a16a199f205b7c19d3f3e2
      // Paper start - Prevent armor stands from doing entity lookups
      @Override
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index d048ee2313142ba4b0fae7ef2badb9f80614bb62..b81331bcdf320f79f1a9b54b67950aeaa1e7761f 100644
+index 63c119072968586fab05ce3990f7c83373736f33..ee2b8b217c16ddaa76ed102659f97b85ff6366eb 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -88,6 +88,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {

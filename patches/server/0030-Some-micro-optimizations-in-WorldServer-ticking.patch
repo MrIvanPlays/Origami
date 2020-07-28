@@ -5,7 +5,7 @@ Subject: [PATCH] Some micro optimizations in WorldServer ticking
 
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 8776972c5b9bda12f7495e382358c7fed38e5fc6..102c4413a1b14670a2ad188bc6e3099e9fe932a2 100644
+index 6f80f3c88a6b50f3bb8c2c7270419b97f1fe21f0..2a842897d1b9a1442ec28c4c28cae982ce5c250e 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -458,12 +458,17 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -62,7 +62,7 @@ index 8776972c5b9bda12f7495e382358c7fed38e5fc6..102c4413a1b14670a2ad188bc6e3099e
  
          this.N();
          this.b();
-@@ -649,9 +667,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -651,9 +669,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
  
      private void wakeupPlayers() {
@@ -74,7 +74,7 @@ index 8776972c5b9bda12f7495e382358c7fed38e5fc6..102c4413a1b14670a2ad188bc6e3099e
      }
  
      // Paper start - optimise random block ticking
-@@ -1323,8 +1341,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1325,8 +1343,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // Spigot start
          if ( entity instanceof EntityHuman )
          {
@@ -85,7 +85,7 @@ index 8776972c5b9bda12f7495e382358c7fed38e5fc6..102c4413a1b14670a2ad188bc6e3099e
                  for (Object o : worldData.data.values() )
                  {
                      if ( o instanceof WorldMap )
-@@ -1341,7 +1360,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1343,7 +1362,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                          }
                      }
                  }

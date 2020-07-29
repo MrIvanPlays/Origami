@@ -156,7 +156,7 @@ index 5194de77f5c1577523e5567f426b49f8e959c73d..0f698f06a0bb59316689ec63aa92a497
      /**
       * Overriding this field will cause memory leaks.
 diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
-index 6cdf345a4e5d34df6102ea0d50dd97a1846c1b5e..4f669097c16f2d594d9905e9c796ccf973cb58ad 100644
+index cda9fc71e357d36e7acb2b7e45820aceb5207cf7..fa599231aa03704f612440166448c46b60bdec92 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunk.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunk.java
 @@ -494,6 +494,7 @@ public class PlayerChunk {

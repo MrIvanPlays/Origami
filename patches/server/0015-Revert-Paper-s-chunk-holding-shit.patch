@@ -5,7 +5,7 @@ Subject: [PATCH] Revert Paper's chunk holding shit
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 2e0a9e41400a2f11bdaee5053811871a936e922e..3c2da47c3578eabc3ca0939b26060fc165b53c3e 100644
+index ca0ca5e407661c7f2d1aa3c70990abaeedd816df..d094ba9dd4269b987420722e4ee1e49a13bee021 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 @@ -402,13 +402,16 @@ public class CraftWorld implements World {

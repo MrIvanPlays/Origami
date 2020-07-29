@@ -5,7 +5,7 @@ Subject: [PATCH] Better concurrency in UserCache
 
 
 diff --git a/src/main/java/net/minecraft/server/UserCache.java b/src/main/java/net/minecraft/server/UserCache.java
-index a038397028848edb4f43cd4f7262546666e32883..a03fc7da3182911efb94367d1dc18c826f298808 100644
+index a038397028848edb4f43cd4f7262546666e32883..9681cc20f31ba0546693dc5637594e664ce6b9b2 100644
 --- a/src/main/java/net/minecraft/server/UserCache.java
 +++ b/src/main/java/net/minecraft/server/UserCache.java
 @@ -52,6 +52,11 @@ public class UserCache {
@@ -53,20 +53,13 @@ index a038397028848edb4f43cd4f7262546666e32883..a03fc7da3182911efb94367d1dc18c82
          UserCache.UserCacheEntry usercache_usercacheentry = (UserCache.UserCacheEntry) this.d.get(s1);
  
          if (usercache_usercacheentry != null && (new Date()).getTime() >= usercache_usercacheentry.c.getTime()) {
-@@ -135,6 +143,7 @@ public class UserCache {
-             this.d.remove(usercache_usercacheentry.a().getName().toLowerCase(Locale.ROOT));
-             this.f.remove(usercache_usercacheentry.a());
-             usercache_usercacheentry = null;
-+            stateLocked = false; this.stateLock.unlock(); // Origami
-         }
- 
-         GameProfile gameprofile;
-@@ -143,8 +152,11 @@ public class UserCache {
+@@ -143,8 +151,12 @@ public class UserCache {
              gameprofile = usercache_usercacheentry.a();
              this.f.remove(gameprofile);
              this.f.addFirst(gameprofile);
 +            stateLocked = false; this.stateLock.unlock(); // Origami
          } else {
++            stateLocked = false; this.stateLock.unlock(); // Origami
 +            try { this.lookupLock.lock(); // Origami
              gameprofile = a(this.g, s); // Spigot - use correct case for offline players
 +            } finally { this.lookupLock.unlock(); } // origami
@@ -77,7 +70,7 @@ index a038397028848edb4f43cd4f7262546666e32883..a03fc7da3182911efb94367d1dc18c82
  
          if( !org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly ) this.c(); // Spigot - skip saving if disabled
          return usercache_usercacheentry == null ? null : usercache_usercacheentry.a();
-+        } finally { if (stateLocked) { stateLocked = false; stateLock.unlock(); } } // Origami
++        } finally { if (stateLocked) { stateLock.unlock(); } } // Origami
      }
  
      // Paper start

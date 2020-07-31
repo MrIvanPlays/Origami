@@ -5,10 +5,10 @@ Subject: [PATCH] Writes is going to have NORMAL priority I said
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 1b2f4f1fb60483cae0b829bd14a04487a7e62bd1..5f4dcd15d62c3f4da3c4926937f5bdaff19eb8bf 100644
+index bb9a51477ab993e36faf2e6428b61b3b8fe2943a..d1e47e3f6c31c89712d2869d4fc5c2c5e3b71cbf 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -959,7 +959,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -967,7 +967,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          }
  
          com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.scheduleSave(this.world, chunkPos.x, chunkPos.z,
@@ -17,7 +17,7 @@ index 1b2f4f1fb60483cae0b829bd14a04487a7e62bd1..5f4dcd15d62c3f4da3c4926937f5bdaf
  
          if (!chunk.isNeedsSaving()) {
              return;
-@@ -993,7 +993,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1001,7 +1001,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              asyncSaveData = ChunkRegionLoader.getAsyncSaveData(this.world, chunk);
          }
  

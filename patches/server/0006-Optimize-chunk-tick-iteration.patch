@@ -324,10 +324,10 @@ index c14cdb60243e16810ad711d204678d51120c3403..cda9fc71e357d36e7acb2b7e45820ace
          }
  
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index ad8a00e0fb5da5df1eb3afbf9ea50acfc89a5ff1..1b2f4f1fb60483cae0b829bd14a04487a7e62bd1 100644
+index 0c70689f525ccfd069f14ea8ef156aa2fa8a854e..bb9a51477ab993e36faf2e6428b61b3b8fe2943a 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -2026,15 +2026,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2034,15 +2034,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      private final void processTrackQueue() {
          this.world.timings.tracker1.startTiming();
          try {
@@ -361,7 +361,7 @@ index ad8a00e0fb5da5df1eb3afbf9ea50acfc89a5ff1..1b2f4f1fb60483cae0b829bd14a04487
          this.world.timings.tracker2.startTiming();
          try {
              for (EntityTracker tracker : this.trackedEntities.values()) {
-@@ -2043,6 +2058,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2051,6 +2066,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          } finally {
              this.world.timings.tracker2.stopTiming();
          }

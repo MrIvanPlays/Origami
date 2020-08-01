@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize collision checking
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 00032d9db0e70a619caf6dc4417e87013df59dc1..a29686baa3e9c44f926b864b3c282a2e41aa9072 100644
+index e61767b62fcc1398b91bf434dc433edd92e7c722..eaee080dc9333f94db5152b25f2f8e7e092c98ca 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -991,7 +991,7 @@ public class PlayerConnection implements PacketListenerPlayIn {

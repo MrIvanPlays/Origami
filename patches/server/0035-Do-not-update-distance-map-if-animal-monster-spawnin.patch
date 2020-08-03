@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Mon, 3 Aug 2020 21:20:57 +0300
+Subject: [PATCH] Do not update distance map if animal/monster spawning is
+ disabled in this world
+
+
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index 558505bdf06e878ddd969e09bc697ebce1746049..cc7ff014d3cb4b1f5a80c16cceba40a6cce9eb1c 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -920,7 +920,7 @@ public class ChunkProviderServer extends IChunkProvider {
+             int l = this.chunkMapDistance.b();
+             // Paper start - per player mob spawning
+             SpawnerCreature.d spawnercreature_d; // moved down
+-            if (this.playerChunkMap.playerMobDistanceMap != null) {
++            if ((allowAnimals || allowMonsters) && this.playerChunkMap.playerMobDistanceMap != null) { // Origami
+                 // update distance map
+                 this.world.timings.playerMobDistanceMapUpdate.startTiming();
+                 this.playerChunkMap.playerMobDistanceMap.update(this.world.players, this.playerChunkMap.viewDistance);

@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Mon, 3 Aug 2020 21:26:46 +0300
+Subject: [PATCH] Fix harming potion dupe
+
+
+diff --git a/src/main/java/net/minecraft/server/ItemPotion.java b/src/main/java/net/minecraft/server/ItemPotion.java
+index 0d204a46b8b23b6fb58acffc5de085e15f77767d..675667bfcef63c84f70802a474d3e75f61b067df 100644
+--- a/src/main/java/net/minecraft/server/ItemPotion.java
++++ b/src/main/java/net/minecraft/server/ItemPotion.java
+@@ -22,6 +22,7 @@ public class ItemPotion extends Item {
+             CriterionTriggers.z.a((EntityPlayer) entityhuman, itemstack);
+         }
+ 
++        List<MobEffect> instantLater = new it.unimi.dsi.fastutil.objects.ObjectArrayList<>(); // Origami
+         if (!world.isClientSide) {
+             List<MobEffect> list = PotionUtil.getEffects(itemstack);
+             Iterator iterator = list.iterator();
+@@ -30,7 +31,7 @@ public class ItemPotion extends Item {
+                 MobEffect mobeffect = (MobEffect) iterator.next();
+ 
+                 if (mobeffect.getMobEffect().isInstant()) {
+-                    mobeffect.getMobEffect().applyInstantEffect(entityhuman, entityhuman, entityliving, mobeffect.getAmplifier(), 1.0D);
++                    instantLater.add(mobeffect); // Origami
+                 } else {
+                     entityliving.addEffect(new MobEffect(mobeffect), org.bukkit.event.entity.EntityPotionEffectEvent.Cause.POTION_DRINK); // CraftBukkit
+                 }
+@@ -44,7 +45,21 @@ public class ItemPotion extends Item {
+             }
+         }
+ 
++        // Origami start
++        if (!world.isClientSide) {
++            for (MobEffect mobeffect : instantLater) {
++                mobeffect.getMobEffect().applyInstantEffect(entityhuman, entityhuman, entityliving, mobeffect.getAmplifier(), 1.0D);
++            }
++        }
++        // Origami end
++
+         if (entityhuman == null || !entityhuman.abilities.canInstantlyBuild) {
++            // Origami start
++            if (entityliving.getHealth() <= 0 && !(entityhuman != null && entityliving.world.getGameRules().getBoolean(GameRules.KEEP_INVENTORY))) {
++                entityliving.dropItem(new ItemStack(Items.GLASS_BOTTLE), 0);
++                return ItemStack.NULL_ITEM;
++            }
++            // Origami end
+             if (itemstack.isEmpty()) {
+                 return new ItemStack(Items.GLASS_BOTTLE);
+             }

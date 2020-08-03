@@ -31,7 +31,7 @@ index 231af493ce876d2ec69719c672386baebd748d8e..40f826409b71d840cd21cb9bae43d60d
 +    }
  }
 diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
-index 893c0085bca0a8d77a85dba1cc29f2dec96c56ec..0400b311fe95a57471e190a346eb13ac793d5104 100644
+index eaed04f786b3c1e1a136163b096bd6aeeb571023..1d0d8067309b9af5e35a34842ba7cbc430917260 100644
 --- a/src/main/java/net/minecraft/server/ChunkMapDistance.java
 +++ b/src/main/java/net/minecraft/server/ChunkMapDistance.java
 @@ -31,7 +31,7 @@ public abstract class ChunkMapDistance {
@@ -156,7 +156,7 @@ index e41cb8613efc86499dfe3be36c9130ab6dc9b89e..dc2895283315e5e0224194a196512c2a
          return j != 0L && i - this.d > j;
      }
 diff --git a/src/main/java/net/minecraft/server/TicketType.java b/src/main/java/net/minecraft/server/TicketType.java
-index 5c789b25f1df2eae8ea8ceb4ba977ba336fe6d5e..c44182b2a6a89105c8db09f403a2b26847beb022 100644
+index 5c789b25f1df2eae8ea8ceb4ba977ba336fe6d5e..7814151101a31d6dc328b1dbda7ba73bb934ccec 100644
 --- a/src/main/java/net/minecraft/server/TicketType.java
 +++ b/src/main/java/net/minecraft/server/TicketType.java
 @@ -26,7 +26,7 @@ public class TicketType<T> {
@@ -172,19 +172,19 @@ index 5c789b25f1df2eae8ea8ceb4ba977ba336fe6d5e..c44182b2a6a89105c8db09f403a2b268
          return this.j;
      }
  
-+    public long getLoadPeriod() { return b(); } // Origami - OBFHELPER
++    public final long getLoadPeriod() { return b(); } // Origami - OBFHELPER
      public long b() {
          return this.loadPeriod;
      }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index d094ba9dd4269b987420722e4ee1e49a13bee021..a246d9ff28baffc9ddf7a620224e543f69940193 100644
+index d094ba9dd4269b987420722e4ee1e49a13bee021..b2fb27e6b4ff7c8e2691f34c1eaac22ae3b6e964 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 @@ -495,6 +495,7 @@ public class CraftWorld implements World {
          org.spigotmc.AsyncCatcher.catchOp("chunk unload"); // Spigot
          if (isChunkLoaded(x, z)) {
              world.getChunkProvider().removeTicket(TicketType.PLUGIN, new ChunkCoordIntPair(x, z), 0, Unit.INSTANCE); // Paper
-+            ((ChunkMapDistance) world.getChunkProvider().playerChunkMap.getChunkMapDistanceManager()).removeTickets(ChunkCoordIntPair.pair(x, z), TicketType.DELAY_UNLOAD); // Origami
++            ((ChunkMapDistance) world.getChunkProvider().playerChunkMap.chunkDistanceManager).removeTickets(ChunkCoordIntPair.pair(x, z), TicketType.DELAY_UNLOAD); // Origami
          }
  
          return true;

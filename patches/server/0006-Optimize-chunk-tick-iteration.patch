@@ -123,7 +123,7 @@ index 3a5a9aba111fed8b68818b95332b723ee2bce2ac..41e3a9934eec0a2ccb77bf217d94b207
  
          @Override
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 0f5036008ea2c99b682e46bdf3a16fcc48315548..9c6aac500516f5bfb258ad7d3f53b982e53adeda 100644
+index 5e55701fa2f19625e85e8e2bfeb9731f277ff180..f92b8dc02cd32190233cd3c0e818714c1302a010 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -987,7 +987,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -211,7 +211,7 @@ index 0f5036008ea2c99b682e46bdf3a16fcc48315548..9c6aac500516f5bfb258ad7d3f53b982
              } catch (Throwable throwable) {
                  // Spigot Start
                  CrashReport crashreport;
-@@ -2267,4 +2270,74 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -2266,4 +2269,74 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          }
      }
      // Paper end
@@ -324,10 +324,10 @@ index c14cdb60243e16810ad711d204678d51120c3403..cda9fc71e357d36e7acb2b7e45820ace
          }
  
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 0c70689f525ccfd069f14ea8ef156aa2fa8a854e..bb9a51477ab993e36faf2e6428b61b3b8fe2943a 100644
+index 5c5ee28f2349ea4cdb90bdca947a736483c43b2b..a8d6c6f195dc6b99ec746107a35b5b5ce789024c 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -2034,15 +2034,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2033,15 +2033,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      private final void processTrackQueue() {
          this.world.timings.tracker1.startTiming();
          try {
@@ -361,7 +361,7 @@ index 0c70689f525ccfd069f14ea8ef156aa2fa8a854e..bb9a51477ab993e36faf2e6428b61b3b
          this.world.timings.tracker2.startTiming();
          try {
              for (EntityTracker tracker : this.trackedEntities.values()) {
-@@ -2051,6 +2066,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2050,6 +2065,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          } finally {
              this.world.timings.tracker2.stopTiming();
          }
@@ -370,10 +370,10 @@ index 0c70689f525ccfd069f14ea8ef156aa2fa8a854e..bb9a51477ab993e36faf2e6428b61b3b
      // Paper end - optimised tracker
  
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 88ca677896f13e46a31411107f50a8c88c84c460..0883d21c05a16a199f205b7c19d3f3e2250c21d7 100644
+index e4c27b491a2550740a6e2efcfbec2c36ad8eac99..16215ea0605e25929c1c7853f5a988a2ced3cb75 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -942,6 +942,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -937,6 +937,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
              return;
              // Paper end
          }

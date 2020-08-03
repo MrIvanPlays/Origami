@@ -960,7 +960,7 @@ index 0000000000000000000000000000000000000000..5829ef89d2065d4bc80301f27e4efd50
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/BlockRedstoneWire.java b/src/main/java/net/minecraft/server/BlockRedstoneWire.java
-index 7b3ccded0451f7b6634aeca0bdc1b5cc94f52b96..e57c6b53e937af73fc61e00f5cc671f0d191e22f 100644
+index 7b3ccded0451f7b6634aeca0bdc1b5cc94f52b96..320fecd5cbc5fcb7bc8eab62d2ad91cf9b523cb6 100644
 --- a/src/main/java/net/minecraft/server/BlockRedstoneWire.java
 +++ b/src/main/java/net/minecraft/server/BlockRedstoneWire.java
 @@ -25,7 +25,7 @@ public class BlockRedstoneWire extends Block {
@@ -1101,7 +1101,7 @@ index 7b3ccded0451f7b6634aeca0bdc1b5cc94f52b96..e57c6b53e937af73fc61e00f5cc671f0
          return Math.max(i, j - 1);
      }
  
-+    private int getPower(IBlockData blockData) { return o(blockData); } // Origami - OBFHELPER
++    private final int getPower(IBlockData blockData) { return o(blockData); } // Origami - OBFHELPER
      private int o(IBlockData iblockdata) {
          return iblockdata.a((Block) this) ? (Integer) iblockdata.get(BlockRedstoneWire.POWER) : 0;
      }
@@ -1133,22 +1133,22 @@ index 7b3ccded0451f7b6634aeca0bdc1b5cc94f52b96..e57c6b53e937af73fc61e00f5cc671f0
                  c(iblockdata, world, blockposition);
                  world.a(blockposition, false);
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 5f81997db78c989e942351e80a0d2558f4b90fcd..88ca677896f13e46a31411107f50a8c88c84c460 100644
+index a173d2562e0c549184f5e82f112843a9893cb502..e4c27b491a2550740a6e2efcfbec2c36ad8eac99 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -642,6 +642,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      }
  
-+    public void neighborChanged(BlockPosition pos, Block block, BlockPosition parent) { a(pos, block, parent); } // Origami - OBFHELPER
++    public final void neighborChanged(BlockPosition pos, Block block, BlockPosition parent) { a(pos, block, parent); } // Origami - OBFHELPER
      public void a(BlockPosition blockposition, Block block, BlockPosition blockposition1) {
          if (!this.isClientSide) {
              IBlockData iblockdata = this.getType(blockposition);
-@@ -1303,6 +1304,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1298,6 +1299,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          return this.getBlockFacePower(blockposition.down(), EnumDirection.DOWN) > 0 ? true : (this.getBlockFacePower(blockposition.up(), EnumDirection.UP) > 0 ? true : (this.getBlockFacePower(blockposition.north(), EnumDirection.NORTH) > 0 ? true : (this.getBlockFacePower(blockposition.south(), EnumDirection.SOUTH) > 0 ? true : (this.getBlockFacePower(blockposition.west(), EnumDirection.WEST) > 0 ? true : this.getBlockFacePower(blockposition.east(), EnumDirection.EAST) > 0))));
      }
  
-+    public int isBlockIndirectlyGettingPowered(BlockPosition position) { return s(position); } // Origami - OBFHELPER
++    public final int isBlockIndirectlyGettingPowered(BlockPosition position) { return s(position); } // Origami - OBFHELPER
      public int s(BlockPosition blockposition) {
          int i = 0;
          EnumDirection[] aenumdirection = World.a;

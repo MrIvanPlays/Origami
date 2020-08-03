@@ -24,14 +24,14 @@ index 306584afb5a8bf1fa53d15f5697d6511a7f3912a..231af493ce876d2ec69719c672386bae
 +    }
  }
 diff --git a/src/main/java/net/minecraft/server/PacketPlayInKeepAlive.java b/src/main/java/net/minecraft/server/PacketPlayInKeepAlive.java
-index 8e93f1540ba5f995489c1fbcec70d10b011cd9c3..b7665fd239a9700e0b8ee9c2d992a99cff915153 100644
+index 8e93f1540ba5f995489c1fbcec70d10b011cd9c3..09fb3118c235d703fc3c33b94e3016692ccad23e 100644
 --- a/src/main/java/net/minecraft/server/PacketPlayInKeepAlive.java
 +++ b/src/main/java/net/minecraft/server/PacketPlayInKeepAlive.java
 @@ -22,6 +22,7 @@ public class PacketPlayInKeepAlive implements Packet<PacketListenerPlayIn> {
          packetdataserializer.writeLong(this.a);
      }
  
-+    public long getId() { return b(); } // Origami - OBFHELPER
++    public final long getId() { return b(); } // Origami - OBFHELPER
      public long b() {
          return this.a;
      }

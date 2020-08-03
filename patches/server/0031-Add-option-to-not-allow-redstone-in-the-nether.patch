@@ -31,7 +31,7 @@ index 63d2294da4f0da628e62b782b71e34cb3eb959b5..8a6278f3c383134c14c8b2cf9dbf2f73
                                  blockstate.update(true, false);
                                  return EnumInteractionResult.FAIL;
 diff --git a/src/main/java/net/minecraft/server/ItemStack.java b/src/main/java/net/minecraft/server/ItemStack.java
-index 3c56053e3075173edd22eccb277f51a12287ab56..262a982d2a45fc1d97b10153d6f4fc4a61aa99c5 100644
+index 3c56053e3075173edd22eccb277f51a12287ab56..b8728e08fd04fc51df103b67be066576b82f0810 100644
 --- a/src/main/java/net/minecraft/server/ItemStack.java
 +++ b/src/main/java/net/minecraft/server/ItemStack.java
 @@ -27,6 +27,7 @@ import java.util.List;
@@ -57,7 +57,7 @@ index 3c56053e3075173edd22eccb277f51a12287ab56..262a982d2a45fc1d97b10153d6f4fc4a
  
 +    // Origami start
 +    public static void redstoneCheck(World world, List<BlockState> blocks, org.bukkit.event.block.BlockPlaceEvent placeEvent) {
-+        if (!com.mrivanplays.origami.OrigamiConfig.allowRedstoneInNether && world.getWorld().getName().equalsIgnoreCase("world_nether")) { // TODO: better world check
++        if (!com.mrivanplays.origami.OrigamiConfig.allowRedstoneInNether && world.getDimensionManager().isNether()) {
 +            boolean hasRedstone = false;
 +            for (BlockState block : blocks) {
 +                Material type = block.getType();

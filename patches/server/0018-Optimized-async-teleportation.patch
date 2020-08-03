@@ -138,7 +138,7 @@ index 41e3a9934eec0a2ccb77bf217d94b2079b22afc2..e7d6fc1572be20645658e2afa5d5d213
          if (Thread.currentThread() != this.serverThread) {
              CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> future = new CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>();
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 5194de77f5c1577523e5567f426b49f8e959c73d..0f698f06a0bb59316689ec63aa92a497f588ab26 100644
+index fd2ac21566b493c516adcf9b2ff426aa65e05c56..363cd8366dc3082ca80b0aff8282caef14c4f5d5 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -212,6 +212,13 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -156,14 +156,14 @@ index 5194de77f5c1577523e5567f426b49f8e959c73d..0f698f06a0bb59316689ec63aa92a497
      /**
       * Overriding this field will cause memory leaks.
 diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
-index cda9fc71e357d36e7acb2b7e45820aceb5207cf7..fa599231aa03704f612440166448c46b60bdec92 100644
+index cda9fc71e357d36e7acb2b7e45820aceb5207cf7..ce97b4fcc7c9853d3be57ad05e4c82ac22b97381 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunk.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunk.java
 @@ -494,6 +494,7 @@ public class PlayerChunk {
          // Paper end - per player view distance
      }
  
-+    public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> getOrCreateFuture(ChunkStatus status, PlayerChunkMap chunkMap) { return a(status, chunkMap); } // Origami - OBFHELPER
++    public final CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> getOrCreateFuture(ChunkStatus status, PlayerChunkMap chunkMap) { return a(status, chunkMap); } // Origami - OBFHELPER
      public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(ChunkStatus chunkstatus, PlayerChunkMap playerchunkmap) {
          int i = chunkstatus.c();
          CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> completablefuture = (CompletableFuture) this.statusFutures.get(i);

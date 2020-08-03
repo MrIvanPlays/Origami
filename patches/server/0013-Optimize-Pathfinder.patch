@@ -124,14 +124,14 @@ index b31d1f73ce0f067e352868b53eab7557c34b17eb..1c3a8043e735ec4605635efcfc5deb08
              f1 = pathpoint.a(pathdestination);
              pathdestination.a(f1, pathpoint);
 diff --git a/src/main/java/net/minecraft/server/PathfinderAbstract.java b/src/main/java/net/minecraft/server/PathfinderAbstract.java
-index 5cfcac3bc29e3f3d139b10209f5082cba292a434..defea2cf2959e3581dc590b5b4e5f6f911367f9a 100644
+index 5cfcac3bc29e3f3d139b10209f5082cba292a434..a842e7c4601b465794715c3442c600155214c1f0 100644
 --- a/src/main/java/net/minecraft/server/PathfinderAbstract.java
 +++ b/src/main/java/net/minecraft/server/PathfinderAbstract.java
 @@ -43,6 +43,7 @@ public abstract class PathfinderAbstract {
  
      public abstract PathPoint b();
  
-+    public PathDestination getGoal(double x, double y, double z) { return a(x, y, z); } // Origami - OBFHELPER
++    public final PathDestination getGoal(double x, double y, double z) { return a(x, y, z); } // Origami - OBFHELPER
      public abstract PathDestination a(double d0, double d1, double d2);
  
      public abstract int a(PathPoint[] apathpoint, PathPoint pathpoint);

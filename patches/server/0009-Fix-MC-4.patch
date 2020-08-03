@@ -22,14 +22,14 @@ index f75c09d44a19f84588f21a55ea8f0dd8ccb539b9..df32875011f9866df35a22ba8a3c69a8
                  boolean flag2 = flag1 || this.tickCounter % 60 == 0;
                  boolean flag3 = Math.abs(i - this.yRot) >= 1 || Math.abs(j - this.xRot) >= 1;
 diff --git a/src/main/java/net/minecraft/server/EntityTypes.java b/src/main/java/net/minecraft/server/EntityTypes.java
-index 18a806ebbf092b904983691529ce5edf2da4e6db..1e30ba1f5058b48b53505686d932c4a7ef77e44e 100644
+index 18a806ebbf092b904983691529ce5edf2da4e6db..c0b72640e6e4ea100913089a0ee00c92b7d35949 100644
 --- a/src/main/java/net/minecraft/server/EntityTypes.java
 +++ b/src/main/java/net/minecraft/server/EntityTypes.java
 @@ -290,6 +290,7 @@ public class EntityTypes<T extends Entity> {
          return this.f();
      }
  
-+    public MinecraftKey getKey() { return i(); } // Origami - OBFHELPER
++    public final MinecraftKey getKey() { return i(); } // Origami - OBFHELPER
      public MinecraftKey i() {
          if (this.bp == null) {
              MinecraftKey minecraftkey = IRegistry.ENTITY_TYPE.getKey(this);

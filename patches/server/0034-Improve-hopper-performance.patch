@@ -1,0 +1,123 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Mon, 3 Aug 2020 12:33:07 +0300
+Subject: [PATCH] Improve hopper performance
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityItem.java b/src/main/java/net/minecraft/server/EntityItem.java
+index a7860cb4ded3e9f949e6e1a7a2afacd738da756e..1c364a97d5739db0095e0693c62eabaee623e32e 100644
+--- a/src/main/java/net/minecraft/server/EntityItem.java
++++ b/src/main/java/net/minecraft/server/EntityItem.java
+@@ -139,10 +139,24 @@ public class EntityItem extends Entity {
+                 // CraftBukkit end
+                 this.die();
+             }
++            markHopperCarts(); // Origami
+ 
+         }
+     }
+ 
++    // Origami start
++    private void markHopperCarts() {
++        if (!dead && onGround && age < 20 * 60 && age % 20 == 0) {
++            AxisAlignedBB aabb = getBoundingBox().grow(32, 4, 32);
++            for (Entity entity : world.getEntities(this, aabb)) {
++                if (entity instanceof EntityMinecartHopper) {
++                    ((EntityMinecartHopper) entity).pickupImmunity = MinecraftServer.currentTick + 200;
++                }
++            }
++        }
++    }
++    // Origami end
++
+     // Spigot start - copied from above
+     @Override
+     public void inactiveTick() {
+@@ -163,6 +177,7 @@ public class EntityItem extends Entity {
+             // CraftBukkit end
+             this.die();
+         }
++        markHopperCarts(); // Origami
+     }
+     // Spigot end
+ 
+diff --git a/src/main/java/net/minecraft/server/EntityMinecartHopper.java b/src/main/java/net/minecraft/server/EntityMinecartHopper.java
+index 4130fd8cd980cbb0b0ace6feb8d20ffced0cd360..a6f8ad8fbb8f838b29bdea65c58b434de25bebe5 100644
+--- a/src/main/java/net/minecraft/server/EntityMinecartHopper.java
++++ b/src/main/java/net/minecraft/server/EntityMinecartHopper.java
+@@ -7,6 +7,7 @@ public class EntityMinecartHopper extends EntityMinecartContainer implements IHo
+     private boolean d = true;
+     private int e = -1;
+     private final BlockPosition f;
++    public int pickupImmunity = 0; // Origami
+ 
+     public EntityMinecartHopper(EntityTypes<? extends EntityMinecartHopper> entitytypes, World world) {
+         super(entitytypes, world);
+@@ -38,6 +39,14 @@ public class EntityMinecartHopper extends EntityMinecartContainer implements IHo
+         return 5;
+     }
+ 
++    // Origami start
++    private long tickAttempts = 0;
++    @Override
++    public long getAndIncrementAttemptCounter() {
++        return tickAttempts++;
++    }
++    // Origami end
++
+     @Override
+     public void a(int i, int j, int k, boolean flag) {
+         boolean flag1 = !flag;
+diff --git a/src/main/java/net/minecraft/server/IHopper.java b/src/main/java/net/minecraft/server/IHopper.java
+index 54552d181912133577cd2c16c0d54e47d90f59d3..68eae14bc7457b8f4c5826b609e891f603f34f34 100644
+--- a/src/main/java/net/minecraft/server/IHopper.java
++++ b/src/main/java/net/minecraft/server/IHopper.java
+@@ -15,6 +15,7 @@ public interface IHopper extends IInventory {
+     //@Nullable // Paper - it's annoying
+     World getWorld();
+     default BlockPosition getBlockPosition() { return new BlockPosition(getX(), getY(), getZ()); } // Paper
++    long getAndIncrementAttemptCounter(); // Origami
+ 
+     double x(); default double getX() { return this.x(); } // Paper - OBFHELPER
+ 
+diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
+index 20df9bd21d0e4d2579d05d79672da2eb26478044..233c8008ebe53518335f16acdec4ba275e99895b 100644
+--- a/src/main/java/net/minecraft/server/TileEntityHopper.java
++++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
+@@ -91,6 +91,19 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+         return ContainerUtil.a(this.f(), i, j);
+     }
+ 
++    // Origami start
++    private long tickAttempts = 0;
++    @Override
++    public long getAndIncrementAttemptCounter() {
++        return tickAttempts++;
++    }
++    private static boolean shouldSuckin(IHopper hopper) {
++        if (hopper instanceof EntityMinecartHopper && ((EntityMinecartHopper) hopper).pickupImmunity > MinecraftServer.currentTick) return true;
++        final int hopperId = (int) hopper.getX() + (int) hopper.getY() + (int) hopper.getZ();
++        return (hopper.getAndIncrementAttemptCounter() + hopperId) % 20 == 0;
++    }
++    // Origami end
++
+     @Override
+     public void setItem(int i, ItemStack itemstack) {
+         this.d((EntityHuman) null);
+@@ -447,7 +460,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+                 }
+             });
+             // Paper end
+-        } else {
++        } else if (shouldSuckin(ihopper)) { // Origami
+             Iterator iterator = c(ihopper).iterator();
+ 
+             EntityItem entityitem;
+@@ -462,6 +475,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+ 
+             return true;
+         }
++        return false; // Origami
+     }
+ 
+     private static boolean a(IHopper ihopper, IInventory iinventory, int i, EnumDirection enumdirection) {// Paper - method unused as logic is inlined above

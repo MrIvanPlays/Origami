@@ -220,7 +220,7 @@ index 3e4538260ba0cba5443a3556481a5e52a6abc148..7160c71c84434798364548997e3cb57c
 +    }
  }
 diff --git a/src/main/java/net/minecraft/server/AxisAlignedBB.java b/src/main/java/net/minecraft/server/AxisAlignedBB.java
-index ed9b2f9adfecdc6d1b9925579ec510657adde11f..64428985eeda77b1532fad174cab0cc8e0ce2faf 100644
+index ed9b2f9adfecdc6d1b9925579ec510657adde11f..d2830535830175823c7a34f493a0e2f2a522fec9 100644
 --- a/src/main/java/net/minecraft/server/AxisAlignedBB.java
 +++ b/src/main/java/net/minecraft/server/AxisAlignedBB.java
 @@ -22,6 +22,113 @@ public class AxisAlignedBB {
@@ -349,7 +349,7 @@ index ed9b2f9adfecdc6d1b9925579ec510657adde11f..64428985eeda77b1532fad174cab0cc8
          return new AxisAlignedBB(this.minX + (double) blockposition.getX(), this.minY + (double) blockposition.getY(), this.minZ + (double) blockposition.getZ(), this.maxX + (double) blockposition.getX(), this.maxY + (double) blockposition.getY(), this.maxZ + (double) blockposition.getZ());
      }
  
-+    public AxisAlignedBB offset(Vec3D vec) { return c(vec); } // Origami - OBFHELPER
++    public final AxisAlignedBB offset(Vec3D vec) { return c(vec); } // Origami - OBFHELPER
      public AxisAlignedBB c(Vec3D vec3d) {
          return this.d(vec3d.x, vec3d.y, vec3d.z);
      }
@@ -357,12 +357,12 @@ index ed9b2f9adfecdc6d1b9925579ec510657adde11f..64428985eeda77b1532fad174cab0cc8
          return this.e(vec3d.x, vec3d.y, vec3d.z);
      }
  
-+    public boolean contains(double x, double y, double z) { return e(x, y, z); } // Origami - OBFHELPER
++    public final boolean contains(double x, double y, double z) { return e(x, y, z); } // Origami - OBFHELPER
      public boolean e(double d0, double d1, double d2) {
          return d0 >= this.minX && d0 < this.maxX && d1 >= this.minY && d1 < this.maxY && d2 >= this.minZ && d2 < this.maxZ;
      }
 diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index d42975c9b0eeb9e8d61708be327bf35529c1811b..05a3a039615a63ef8f7c4d8f2170cd8e85ac4377 100644
+index 750e37a9d54ae9a805320729c2f007cf709af6c5..1db13d51f9dbee7718cb68e2ea84872e93cba071 100644
 --- a/src/main/java/net/minecraft/server/BlockBase.java
 +++ b/src/main/java/net/minecraft/server/BlockBase.java
 @@ -332,11 +332,19 @@ public abstract class BlockBase {
@@ -397,7 +397,7 @@ index d42975c9b0eeb9e8d61708be327bf35529c1811b..05a3a039615a63ef8f7c4d8f2170cd8e
  
          public boolean e() {
 diff --git a/src/main/java/net/minecraft/server/ChunkSection.java b/src/main/java/net/minecraft/server/ChunkSection.java
-index 8d45588ecfa33b8c7335df3db58ed6865b8c956c..d5725c4060e33b365c4032743b9fab80acd1d8ca 100644
+index 3588fe10017cf2341b9121bbb0438ef3fdf8cda6..9050b512a3cc5028244eeb3261c407e45723d902 100644
 --- a/src/main/java/net/minecraft/server/ChunkSection.java
 +++ b/src/main/java/net/minecraft/server/ChunkSection.java
 @@ -96,6 +96,7 @@ public class ChunkSection {
@@ -409,7 +409,7 @@ index 8d45588ecfa33b8c7335df3db58ed6865b8c956c..d5725c4060e33b365c4032743b9fab80
          return this.nonEmptyBlockCount == 0;
      }
 diff --git a/src/main/java/net/minecraft/server/DataPaletteBlock.java b/src/main/java/net/minecraft/server/DataPaletteBlock.java
-index 1cb45f97b644347d16b66b46113b1e4455004fd3..2a35973d51eaf1cc042b6dc5504eec6208424a96 100644
+index 95ef96286855624590b72d69514b0fc0e08fddba..3aee5136680c95cc44e3ce94e2eff3df26e64fe8 100644
 --- a/src/main/java/net/minecraft/server/DataPaletteBlock.java
 +++ b/src/main/java/net/minecraft/server/DataPaletteBlock.java
 @@ -163,6 +163,7 @@ public class DataPaletteBlock<T> implements DataPaletteExpandable<T> {
@@ -421,7 +421,7 @@ index 1cb45f97b644347d16b66b46113b1e4455004fd3..2a35973d51eaf1cc042b6dc5504eec62
          T t0 = this.h.a(this.a.a(i));
  
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 0f698f06a0bb59316689ec63aa92a497f588ab26..8f6c1b0ef2f9247f7e0f1dc02b42fe3982230695 100644
+index 363cd8366dc3082ca80b0aff8282caef14c4f5d5..0cb99c653ed20e77583f882c532c02f93e2a53d4 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -136,7 +136,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -576,14 +576,6 @@ index 0f698f06a0bb59316689ec63aa92a497f588ab26..8f6c1b0ef2f9247f7e0f1dc02b42fe39
      public static double b(Vec3D vec3d) {
          return vec3d.x * vec3d.x + vec3d.z * vec3d.z;
      }
-@@ -1098,6 +1225,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
- 
- 
-     @Nullable public final AxisAlignedBB getCollisionBox(){return ay();} //Paper - OBFHELPER
-+    @Nullable public final AxisAlignedBB getHardCollisionBox() { return ay(); } // Origami - OBFHELPER
-     @Nullable public AxisAlignedBB ay() {
-         return null;
-     }
 diff --git a/src/main/java/net/minecraft/server/ICollisionAccess.java b/src/main/java/net/minecraft/server/ICollisionAccess.java
 index 1cc40b1f0af9e617b2a71bcc442543e10b2dc61a..bf9987b4872d7bc1e9ce33705c31b7281e5f59d1 100644
 --- a/src/main/java/net/minecraft/server/ICollisionAccess.java
@@ -613,7 +605,7 @@ index 267a6baae89c181eed545e6758fac7115eb3882f..03bebde5c0a33e9d0de6470f2c5d7193
                  return entity == null || !entity.isSameVehicle(entity1);
              });
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 9c6aac500516f5bfb258ad7d3f53b982e53adeda..6a4f91cd69c19b205161b2c1b232eeeb743e2081 100644
+index f92b8dc02cd32190233cd3c0e818714c1302a010..6a68e3a3bb33815f0092d4f0d4c31289a3c18526 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1264,6 +1264,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -696,7 +688,7 @@ index 3048ba008147f4647d633f59db812db9021a7c67..cd61fb06f8170d5972ca31a218ca6027
          return this.x * this.x + this.y * this.y + this.z * this.z;
      }
 diff --git a/src/main/java/net/minecraft/server/VoxelShape.java b/src/main/java/net/minecraft/server/VoxelShape.java
-index c2b8c9820663f95f58f0c3a62cd9ec99c835a82f..12877c7f949064180e7c76226000e38ab093d201 100644
+index c2b8c9820663f95f58f0c3a62cd9ec99c835a82f..6815306397ed371f300ad112941a2d1025773b58 100644
 --- a/src/main/java/net/minecraft/server/VoxelShape.java
 +++ b/src/main/java/net/minecraft/server/VoxelShape.java
 @@ -8,11 +8,11 @@ import javax.annotation.Nullable;
@@ -704,7 +696,7 @@ index c2b8c9820663f95f58f0c3a62cd9ec99c835a82f..12877c7f949064180e7c76226000e38a
  public abstract class VoxelShape {
  
 -    protected final VoxelShapeDiscrete a;
-+    protected final VoxelShapeDiscrete a; public VoxelShapeDiscrete getShape() { return a; } // Origami - OBFHELPER
++    protected final VoxelShapeDiscrete a; public final VoxelShapeDiscrete getShape() { return a; } // Origami - OBFHELPER
      @Nullable
      private VoxelShape[] b;
  
@@ -730,7 +722,7 @@ index c2b8c9820663f95f58f0c3a62cd9ec99c835a82f..12877c7f949064180e7c76226000e38a
          }, true);
      }
  
-+    public List<AxisAlignedBB> getBoundingBoxesRepresentation() { return d(); } // Origami - OBFHELPER
++    public final List<AxisAlignedBB> getBoundingBoxesRepresentation() { return d(); } // Origami - OBFHELPER
      public List<AxisAlignedBB> d() {
          List<AxisAlignedBB> list = Lists.newArrayList();
  
@@ -952,10 +944,10 @@ index 1fa7061f7adb539b6786fa11a0090f2c188ba9f2..b6ebbcdd1ae72260130596567c2b5d42
              throw (IllegalArgumentException) SystemUtils.c(new IllegalArgumentException());
          } else if (voxelshape == voxelshape1) {
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index e1c4fe3a6a58e026747801d9c6c6256337dfae63..616edd05c50cb87b84446271e4698ef3d11a0207 100644
+index e27a26822a49c06830ef01a44515a4eb524f814b..f715885375b38109bce8e36a836505b5b6704d75 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -1128,6 +1128,11 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1123,6 +1123,11 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      public List<Entity> getHardCollidingEntities(@Nullable Entity entity, AxisAlignedBB axisalignedbb, Predicate<Entity> predicate) {
          // copied from below
          List<Entity> list = Lists.newArrayList();
@@ -968,7 +960,7 @@ index e1c4fe3a6a58e026747801d9c6c6256337dfae63..616edd05c50cb87b84446271e4698ef3
          int j = MathHelper.floor((axisalignedbb.maxX + 2.0D) / 16.0D);
          int k = MathHelper.floor((axisalignedbb.minZ - 2.0D) / 16.0D);
 diff --git a/src/main/java/net/minecraft/server/WorldBorder.java b/src/main/java/net/minecraft/server/WorldBorder.java
-index b651eb87bb23deeb2a3f4a1c626ddde9b11a7b9e..b9fa8b666ca0fc3dfffcdea2235c4367e39cad26 100644
+index b651eb87bb23deeb2a3f4a1c626ddde9b11a7b9e..1e68b56bef204a2243a7f36a1d97a103c41f1dd1 100644
 --- a/src/main/java/net/minecraft/server/WorldBorder.java
 +++ b/src/main/java/net/minecraft/server/WorldBorder.java
 @@ -26,6 +26,24 @@ public class WorldBorder {
@@ -996,15 +988,7 @@ index b651eb87bb23deeb2a3f4a1c626ddde9b11a7b9e..b9fa8b666ca0fc3dfffcdea2235c4367
      // Paper start
      private final BlockPosition.MutableBlockPosition mutPos = new BlockPosition.MutableBlockPosition();
      public boolean isBlockInBounds(int chunkX, int chunkZ) {
-@@ -52,6 +70,7 @@ public class WorldBorder {
-     }
- 
-     public final VoxelShape asVoxelShape(){ return c();} // Paper - OBFHELPER
-+    public final VoxelShape getCollisionShape() { return c(); } // Origami - OBFHELPER
-     public VoxelShape c() {
-         return this.j.m();
-     }
-@@ -67,18 +86,22 @@ public class WorldBorder {
+@@ -67,18 +85,22 @@ public class WorldBorder {
          return Math.min(d6, d3);
      }
  
@@ -1028,7 +1012,7 @@ index b651eb87bb23deeb2a3f4a1c626ddde9b11a7b9e..b9fa8b666ca0fc3dfffcdea2235c4367
          return this.j.d();
      }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 2a842897d1b9a1442ec28c4c28cae982ce5c250e..b55222ce15700c0c777515809130c01713f5935e 100644
+index 2a842897d1b9a1442ec28c4c28cae982ce5c250e..3e980982ae46a7d63f7c0f29b5a570d8b737df4b 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -2228,4 +2228,346 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -1180,7 +1164,7 @@ index 2a842897d1b9a1442ec28c4c28cae982ce5c250e..b55222ce15700c0c777515809130c017
 +                }
 +            }
 +
-+            AxisAlignedBB hardCollisionBox = otherEntity.getHardCollisionBox();
++            AxisAlignedBB hardCollisionBox = otherEntity.getCollisionBox();
 +
 +            if (hardCollisionBox != null && axisalignedbb1.intersects(hardCollisionBox)) {
 +                return true;
@@ -1202,7 +1186,7 @@ index 2a842897d1b9a1442ec28c4c28cae982ce5c250e..b55222ce15700c0c777515809130c017
 +    public void getCollisionsForBlocksOrWorldBorder(@Nullable Entity entity, AxisAlignedBB axisalignedbb, List<AxisAlignedBB> list, boolean loadChunks) {
 +        if (entity != null) {
 +            if (this.getWorldBorder().isCollidingOnBorderEdge(axisalignedbb)) {
-+                VoxelShapes.addBoxesTo(this.getWorldBorder().getCollisionShape(), list);
++                VoxelShapes.addBoxesTo(this.getWorldBorder().asVoxelShape(), list);
 +            }
 +        }
 +
@@ -1346,7 +1330,7 @@ index 2a842897d1b9a1442ec28c4c28cae982ce5c250e..b55222ce15700c0c777515809130c017
 +                    }
 +                }
 +
-+                AxisAlignedBB hardCollisionBox = otherEntity.getHardCollisionBox();
++                AxisAlignedBB hardCollisionBox = otherEntity.getCollisionBox();
 +
 +                if (hardCollisionBox != null && axisalignedbb1.intersects(hardCollisionBox)) {
 +                    list.add(hardCollisionBox);

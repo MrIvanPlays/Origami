@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize HeightMap
 
 
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index 84dc89d961bde16f96dba5cf7f2ce4b85564215a..bd600aea8152c392044e2e75a5e95bad369a49dc 100644
+index 7e8e1547337c7da451129a1529d372f27b07e6e5..da84a5a41ba6b6ffb99b565b5d72549fc2704cd3 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
 @@ -375,7 +375,7 @@ public class Chunk implements IChunkAccess {
@@ -18,14 +18,14 @@ index 84dc89d961bde16f96dba5cf7f2ce4b85564215a..bd600aea8152c392044e2e75a5e95bad
          }
  
 diff --git a/src/main/java/net/minecraft/server/DataBits.java b/src/main/java/net/minecraft/server/DataBits.java
-index 235c9ec37c00ce8838b3e7c02284e402f9d30e38..d0220950a25b5cbad1333383431d76ed76d73602 100644
+index e65fe633f5dc7df58fdc52955c23a9b9fbcdc4f6..a3ffbc4076887ae73e745572251ae5f43168804f 100644
 --- a/src/main/java/net/minecraft/server/DataBits.java
 +++ b/src/main/java/net/minecraft/server/DataBits.java
 @@ -52,6 +52,7 @@ public class DataBits {
          return (int) ((long) i * j + k >> 32 >> this.i);
      }
  
-+    public int getAndSet(int index, int value) { return a(index, value); } // Origami - OBFHELPER
++    public final int getAndSet(int index, int value) { return a(index, value); } // Origami - OBFHELPER
      public int a(int i, int j) {
          //Validate.inclusiveBetween(0L, (long) (this.e - 1), (long) i); // Paper
          //Validate.inclusiveBetween(0L, this.d, (long) j); // Paper
@@ -33,7 +33,7 @@ index 235c9ec37c00ce8838b3e7c02284e402f9d30e38..d0220950a25b5cbad1333383431d76ed
          return j1;
      }
  
-+    public void set(int index, int value) { b(index, value); } // Origami - OBFHELPER
++    public final void set(int index, int value) { b(index, value); } // Origami - OBFHELPER
      public void b(int i, int j) {
          //Validate.inclusiveBetween(0L, (long) (this.e - 1), (long) i); // Paper
          //Validate.inclusiveBetween(0L, this.d, (long) j); // Paper
@@ -41,12 +41,12 @@ index 235c9ec37c00ce8838b3e7c02284e402f9d30e38..d0220950a25b5cbad1333383431d76ed
          this.b[k] = l & ~(this.d << i1) | ((long) j & this.d) << i1;
      }
  
-+    public int get(int index) { return a(index); } // Origami - OBFHELPER
++    public final int get(int index) { return a(index); } // Origami - OBFHELPER
      public int a(int i) {
          //Validate.inclusiveBetween(0L, (long) (this.e - 1), (long) i); // Paper
          int j = this.b(i);
 diff --git a/src/main/java/net/minecraft/server/HeightMap.java b/src/main/java/net/minecraft/server/HeightMap.java
-index 068b92c5c4ae112771757626ea75694e59f3d255..d8de3877e4f7964eabd6482abd7a088251538583 100644
+index 068b92c5c4ae112771757626ea75694e59f3d255..9e78d48c9a5e35236b278bea92d6ab59c264796e 100644
 --- a/src/main/java/net/minecraft/server/HeightMap.java
 +++ b/src/main/java/net/minecraft/server/HeightMap.java
 @@ -19,7 +19,24 @@ public class HeightMap {
@@ -79,7 +79,7 @@ index 068b92c5c4ae112771757626ea75694e59f3d255..d8de3877e4f7964eabd6482abd7a0882
          }
      }
  
-+    public int get(int x, int z) { return a(x, z); } // Origami - OBFHELPER
++    public final int get(int x, int z) { return a(x, z); } // Origami - OBFHELPER
      public int a(int i, int j) {
          return this.a(c(i, j));
      }

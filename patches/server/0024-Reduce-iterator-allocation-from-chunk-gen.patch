@@ -26,7 +26,7 @@ index ac58fcb7985ebe0cfdab6e1400deb37c233ff637..ae90bcef868a04c25255fecdb6d9e5ba
  
              if (nbttagcompound3.hasKeyOfType(s, 12)) {
 diff --git a/src/main/java/net/minecraft/server/ChunkStatus.java b/src/main/java/net/minecraft/server/ChunkStatus.java
-index 36c26512297430cf072b549614990b064db94152..faba5a493007ce62083243a1e615e30580cd2980 100644
+index 7948b915bf1adaea49fb5c78284ce6d4a8e7f6df..1d2c391bab11cf69c1fbead8a8efe2b8c1dad3f9 100644
 --- a/src/main/java/net/minecraft/server/ChunkStatus.java
 +++ b/src/main/java/net/minecraft/server/ChunkStatus.java
 @@ -109,7 +109,7 @@ public class ChunkStatus {

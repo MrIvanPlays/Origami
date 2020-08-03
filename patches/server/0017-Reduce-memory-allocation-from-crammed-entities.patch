@@ -41,7 +41,7 @@ index 0000000000000000000000000000000000000000..3e4538260ba0cba5443a3556481a5e52
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 89e17bbeb6cb3eca58af69eb460fb27b370a32dc..61b3b6a6d7b6d14c367cf491c190498006db59b7 100644
+index ea23a75faca30d8c8b213af60006d40c9b6c69f1..931306fd36ed038c856fd6e39abdc2a6d8f17122 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -2832,7 +2832,10 @@ public abstract class EntityLiving extends Entity {
@@ -68,10 +68,10 @@ index 89e17bbeb6cb3eca58af69eb460fb27b370a32dc..61b3b6a6d7b6d14c367cf491c1904980
  
      protected void a(AxisAlignedBB axisalignedbb, AxisAlignedBB axisalignedbb1) {
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 0883d21c05a16a199f205b7c19d3f3e2250c21d7..87aec3ebc9fccafc482190b66b26860bae8a23f9 100644
+index 16215ea0605e25929c1c7853f5a988a2ced3cb75..b862c2e48af2f40034270d9551b0683b5d129523 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -1150,8 +1150,13 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1145,8 +1145,13 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      @Override
      public List<Entity> getEntities(@Nullable Entity entity, AxisAlignedBB axisalignedbb, @Nullable Predicate<? super Entity> predicate) {

@@ -17,7 +17,7 @@ index 7db6b5850b91588eb4d91f0d7e8b5dbbcb95b7cb..a648c6e2e9aa546be9a9c60a9a896642
          return new ArraySetSorted<>(i, (Comparator)Comparator.naturalOrder()); // Paper - decompile fix
      }
 diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
-index 0400b311fe95a57471e190a346eb13ac793d5104..091a69239729cfbff30ad8cb46eb23dbdeecda7f 100644
+index 1d0d8067309b9af5e35a34842ba7cbc430917260..483dd941823703ba4716f36bede604217aac2ea1 100644
 --- a/src/main/java/net/minecraft/server/ChunkMapDistance.java
 +++ b/src/main/java/net/minecraft/server/ChunkMapDistance.java
 @@ -160,9 +160,12 @@ public abstract class ChunkMapDistance {

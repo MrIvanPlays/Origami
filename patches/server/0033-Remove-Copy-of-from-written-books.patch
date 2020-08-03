@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Mon, 3 Aug 2020 12:28:23 +0300
+Subject: [PATCH] Remove Copy of from written books
+
+
+diff --git a/src/main/java/net/minecraft/server/ItemStack.java b/src/main/java/net/minecraft/server/ItemStack.java
+index b8728e08fd04fc51df103b67be066576b82f0810..d3ce079c097c3dc993c2a39e9e23d492202d782d 100644
+--- a/src/main/java/net/minecraft/server/ItemStack.java
++++ b/src/main/java/net/minecraft/server/ItemStack.java
+@@ -168,6 +168,7 @@ public final class ItemStack {
+             this.tag = (NBTTagCompound) nbttagcompound.getCompound("tag").clone();
+             processEnchantOrder(this.tag); // Paper
+             processText(); // Paper
++            if (item == Items.WRITTEN_BOOK && tag.hasKey("generation")) tag.remove("generation"); // Origami
+             this.getItem().b(this.tag);
+             // CraftBukkit end
+         }
+diff --git a/src/main/java/net/minecraft/server/RecipeBookClone.java b/src/main/java/net/minecraft/server/RecipeBookClone.java
+index 02fb8e6ccd9ea8e5f4a6d51a3f7392b07853c48c..df340456cef57d91b1a43726a5fae209b8f5b47c 100644
+--- a/src/main/java/net/minecraft/server/RecipeBookClone.java
++++ b/src/main/java/net/minecraft/server/RecipeBookClone.java
+@@ -61,7 +61,7 @@ public class RecipeBookClone extends IRecipeComplex {
+             ItemStack itemstack2 = new ItemStack(Items.WRITTEN_BOOK, i);
+             NBTTagCompound nbttagcompound = itemstack.getTag().clone();
+ 
+-            nbttagcompound.setInt("generation", ItemWrittenBook.d(itemstack) + 1);
++            //nbttagcompound.setInt("generation", ItemWrittenBook.d(itemstack) + 1); // Origami
+             itemstack2.setTag(nbttagcompound);
+             return itemstack2;
+         } else {

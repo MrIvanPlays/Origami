@@ -5,7 +5,7 @@ Subject: [PATCH] Remove Copy of from written books
 
 
 diff --git a/src/main/java/net/minecraft/server/ItemStack.java b/src/main/java/net/minecraft/server/ItemStack.java
-index b8728e08fd04fc51df103b67be066576b82f0810..d3ce079c097c3dc993c2a39e9e23d492202d782d 100644
+index 0b729517f3c11db883433f54322502299339b090..73d4fc8c48e1de05ac14a397dd4236aa74709a27 100644
 --- a/src/main/java/net/minecraft/server/ItemStack.java
 +++ b/src/main/java/net/minecraft/server/ItemStack.java
 @@ -168,6 +168,7 @@ public final class ItemStack {

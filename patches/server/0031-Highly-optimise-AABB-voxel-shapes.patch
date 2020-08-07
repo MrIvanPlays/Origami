@@ -618,7 +618,7 @@ index f92b8dc02cd32190233cd3c0e818714c1302a010..6a68e3a3bb33815f0092d4f0d4c31289
          long endTime = System.nanoTime();
          long remaining = (TICK_TIME - (endTime - lastTick)) - catchupTime;
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index eaee080dc9333f94db5152b25f2f8e7e092c98ca..8f31846b58ef684b90e34f74ca53af60eff3b5fd 100644
+index 3074a136568f3a0c937c252ad1aaf9edf2b4b7d5..488651f2e4d02f5ceed684bd4f77494c16fc6063 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -338,19 +338,24 @@ public class PlayerConnection implements PacketListenerPlayIn {

@@ -36,7 +36,7 @@ index 8e93f1540ba5f995489c1fbcec70d10b011cd9c3..09fb3118c235d703fc3c33b94e301669
          return this.a;
      }
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index c8c86efc46d7a9c9c7e3e7c50435e4db7ded0dd1..e61767b62fcc1398b91bf434dc433edd92e7c722 100644
+index 4e7ab29d31a0dd6b430367a615f0f378e48db0b8..c086af85ae4f0c0e5eb1292c4b79165dca684a87 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -69,6 +69,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -75,7 +75,7 @@ index c8c86efc46d7a9c9c7e3e7c50435e4db7ded0dd1..e61767b62fcc1398b91bf434dc433edd
          // Paper end
  
          this.minecraftServer.getMethodProfiler().exit();
-@@ -2698,6 +2713,15 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -2696,6 +2711,15 @@ public class PlayerConnection implements PacketListenerPlayIn {
  
      @Override
      public void a(PacketPlayInKeepAlive packetplayinkeepalive) {
@@ -91,7 +91,7 @@ index c8c86efc46d7a9c9c7e3e7c50435e4db7ded0dd1..e61767b62fcc1398b91bf434dc433edd
          //PlayerConnectionUtils.ensureMainThread(packetplayinkeepalive, this, this.player.getWorldServer()); // CraftBukkit // Paper - This shouldn't be on the main thread
          if (this.awaitingKeepAlive && packetplayinkeepalive.b() == this.h) {
              int i = (int) (SystemUtils.getMonotonicMillis() - this.lastKeepAlive);
-@@ -2711,6 +2735,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -2709,6 +2733,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
              });
              // Paper end
          }

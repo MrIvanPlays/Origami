@@ -5,10 +5,10 @@ Subject: [PATCH] Optimize collision checking
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index e61767b62fcc1398b91bf434dc433edd92e7c722..eaee080dc9333f94db5152b25f2f8e7e092c98ca 100644
+index c086af85ae4f0c0e5eb1292c4b79165dca684a87..3074a136568f3a0c937c252ad1aaf9edf2b4b7d5 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
-@@ -991,7 +991,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -990,7 +990,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                      this.syncPosition();
                  }
  
@@ -17,7 +17,7 @@ index e61767b62fcc1398b91bf434dc433edd92e7c722..eaee080dc9333f94db5152b25f2f8e7e
                      if (this.e - this.A > 20) {
                          this.A = this.e;
                          this.a(this.teleportPos.x, this.teleportPos.y, this.teleportPos.z, this.player.yaw, this.player.pitch);
-@@ -1016,7 +1016,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1015,7 +1015,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                          double d2 = this.player.locZ();
                          double d3 = this.player.locY();
                          double d4 = packetplayinflying.a(this.player.locX());double toX = d4; // Paper - OBFHELPER
@@ -26,7 +26,7 @@ index e61767b62fcc1398b91bf434dc433edd92e7c722..eaee080dc9333f94db5152b25f2f8e7e
                          double d6 = packetplayinflying.c(this.player.locZ());double toZ = d6; // Paper - OBFHELPER
                          float f = packetplayinflying.a(this.player.yaw);
                          float f1 = packetplayinflying.b(this.player.pitch);
-@@ -1113,6 +1113,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1112,6 +1112,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                              }
  
                              this.player.move(EnumMoveType.PLAYER, new Vec3D(d7, d8, d9));
@@ -34,7 +34,7 @@ index e61767b62fcc1398b91bf434dc433edd92e7c722..eaee080dc9333f94db5152b25f2f8e7e
                              this.player.c(packetplayinflying.b()); // CraftBukkit - SPIGOT-5810, SPIGOT-5835: reset by this.player.move
                              // Paper start - prevent position desync
                              if (this.teleportPos != null) {
-@@ -1137,7 +1138,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1136,7 +1137,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                              }
  
                              this.player.setLocation(d4, d5, d6, f, f1);

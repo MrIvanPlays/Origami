@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
+Date: Fri, 7 Aug 2020 11:40:11 +0300
+Subject: [PATCH] Scoreboard score search timings
+
+
+diff --git a/src/main/java/co/aikar/timings/MinecraftTimings.java b/src/main/java/co/aikar/timings/MinecraftTimings.java
+index 71a25120b613aded5044eae66e1ca22e559b9072..92cd104e3c6aa3f531a3e7a569b82e5191e84a4c 100644
+--- a/src/main/java/co/aikar/timings/MinecraftTimings.java
++++ b/src/main/java/co/aikar/timings/MinecraftTimings.java
+@@ -44,6 +44,7 @@ public final class MinecraftTimings {
+     public static final Timing antiXrayObfuscateTimer = Timings.ofSafe("anti-xray - obfuscate");
+ 
+     public static final Timing distanceManagerTick = Timings.ofSafe("Distance Manager Tick"); // Origami
++    public static final Timing scoreboardScoreSearch = Timings.ofSafe("Scoreboard score search"); // Origami
+ 
+     private static final Map<Class<?>, String> taskNameCache = new MapMaker().weakKeys().makeMap();
+ 
+diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
+index ca2be30609159e6ca98b363d75cbc3ac550bca31..0a1d9561968451a23352402829ff83dd80173692 100644
+--- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
++++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
+@@ -100,9 +100,14 @@ public final class CraftScoreboardManager implements ScoreboardManager {
+ 
+     // CraftBukkit method
+     public void getScoreboardScores(IScoreboardCriteria criteria, String name, Consumer<ScoreboardScore> consumer) {
++        // Origami start
++        co.aikar.timings.MinecraftTimings.scoreboardScoreSearch.startTiming();
++        try {
++        // Origami end
+         for (CraftScoreboard scoreboard : scoreboards) {
+             Scoreboard board = scoreboard.board;
+             board.getObjectivesForCriteria(criteria, name, (score) -> consumer.accept(score));
+         }
++        } finally { co.aikar.timings.MinecraftTimings.scoreboardScoreSearch.stopTiming(); } // Origami
+     }
+ }

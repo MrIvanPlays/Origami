@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Fri, 7 Aug 2020 21:11:46 +0300
+Subject: [PATCH] Disable bukkit's anticheat shit
+
+
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index 488651f2e4d02f5ceed684bd4f77494c16fc6063..182f774485721e484e17076417bf7221ee97e6fb 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -390,7 +390,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                 }
+                 // Paper end
+ 
+-                if (d10 - d9 > Math.max(100.0D, Math.pow((double) (org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed), 2)) && !this.isExemptPlayer()) {
++                if (false && d10 - d9 > Math.max(100.0D, Math.pow((double) (org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed), 2)) && !this.isExemptPlayer()) { // Origami
+                 // CraftBukkit end
+                     PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved too quickly! {},{},{}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), d6, d7, d8);
+                     this.networkManager.sendPacket(new PacketPlayOutVehicleMove(entity));
+@@ -415,7 +415,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                 d10 = d6 * d6 + d7 * d7 + d8 * d8;
+                 boolean flag1 = false;
+ 
+-                if (d10 > org.spigotmc.SpigotConfig.movedWronglyThreshold) { // Spigot
++                if (false && d10 > org.spigotmc.SpigotConfig.movedWronglyThreshold) { // Spigot // Origami
+                     flag1 = true;
+                     PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), Math.sqrt(d10));
+                 }
+@@ -1070,7 +1070,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                             if (!this.player.H() && (!this.player.getWorldServer().getGameRules().getBoolean(GameRules.DISABLE_ELYTRA_MOVEMENT_CHECK) || !this.player.isGliding())) {
+                                 float f2 = this.player.isGliding() ? 300.0F : 100.0F;
+ 
+-                                if (d11 - d10 > Math.max(f2, Math.pow((double) (org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed), 2)) && !this.isExemptPlayer()) {
++                                if (false && d11 - d10 > Math.max(f2, Math.pow((double) (org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed), 2)) && !this.isExemptPlayer()) { // Origami
+                                 // CraftBukkit end
+                                     PlayerConnection.LOGGER.warn("{} moved too quickly! {},{},{}", this.player.getDisplayName().getString(), d7, d8, d9);
+                                     this.a(this.player.locX(), this.player.locY(), this.player.locZ(), this.player.yaw, this.player.pitch);
+@@ -1136,7 +1136,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                             d11 = d7 * d7 + d8 * d8 + d9 * d9;
+                             boolean flag1 = false;
+ 
+-                            if (!this.player.H() && d11 > org.spigotmc.SpigotConfig.movedWronglyThreshold && !this.player.isSleeping() && !this.player.playerInteractManager.isCreative() && this.player.playerInteractManager.getGameMode() != EnumGamemode.SPECTATOR) { // Spigot
++                            if (false && !this.player.H() && d11 > org.spigotmc.SpigotConfig.movedWronglyThreshold && !this.player.isSleeping() && !this.player.playerInteractManager.isCreative() && this.player.playerInteractManager.getGameMode() != EnumGamemode.SPECTATOR) { // Spigot // Origami
+                                 flag1 = true;
+                                 PlayerConnection.LOGGER.warn("{} moved wrongly!", this.player.getDisplayName().getString());
+                             }

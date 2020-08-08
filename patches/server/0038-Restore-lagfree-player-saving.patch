@@ -1,0 +1,102 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Sat, 8 Aug 2020 08:32:54 +0300
+Subject: [PATCH] Restore lagfree player saving
+
+Original author: Aikar <aikar@aikar.co>
+
+This patch was dropped in 1.14, had to go digging between versions in order to find it :eyes:
+Co-Authored-By: MrIvanPlays <ivan@mrivanplays.com> - ported to 1.16.1 and origami
+
+diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+index f386e89735bcd9d3623c22ff0cc7cfe25cb4c384..05cb2cb2bb28ac941b9a3b4565b65d49fc1772f7 100644
+--- a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
++++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
+@@ -147,4 +147,14 @@ public final class OrigamiConfig {
+     private static void allowRedstoneInNether() {
+         allowRedstoneInNether = getBoolean("allow-redstone-in-nether", allowRedstoneInNether);
+     }
++
++    public static int maxPlayerAutoSavePerTick = 10;
++    private static void maxPlayerAutoSavePerTick() {
++        maxPlayerAutoSavePerTick = getInt("max-player-auto-save-per-tick", maxPlayerAutoSavePerTick);
++    }
++
++    public static int playerAutoSaveRate = -1;
++    private static void playerAutoSaveRate() {
++        playerAutoSaveRate = getInt("player-auto-save-rate", playerAutoSaveRate);
++    }
+ }
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index e5a81f831813209d224ffedbc03f6d8243721a25..0316e74bf03dd0f1e0f260da045b92d7a75703f9 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -123,6 +123,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+ 
+     boolean needsChunkCenterUpdate; // Paper - no-tick view distance
+ 
++    public long lastSave = MinecraftServer.currentTick; // Origami
++
+     public EntityPlayer(MinecraftServer minecraftserver, WorldServer worldserver, GameProfile gameprofile, PlayerInteractManager playerinteractmanager) {
+         super(worldserver, worldserver.getSpawn(), gameprofile);
+         this.spawnDimension = World.OVERWORLD;
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 6a68e3a3bb33815f0092d4f0d4c31289a3c18526..95d8e4a6d88fd54d598388f431de2f1f68059a86 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1231,9 +1231,15 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         //if (autosavePeriod > 0 && this.ticks % autosavePeriod == 0) { // CraftBukkit // Paper - move down
+             //MinecraftServer.LOGGER.debug("Autosave started"); // Paper
+             serverAutoSave = (autosavePeriod > 0 && this.ticks % autosavePeriod == 0); // Paper
++            // Origami start
++            int playerSaveInterval = com.mrivanplays.origami.OrigamiConfig.playerAutoSaveRate;
++            if (playerSaveInterval < 0) {
++                playerSaveInterval = autosavePeriod;
++            }
++            // Origami end
+             this.methodProfiler.enter("save");
+-            if (autosavePeriod > 0 && this.ticks % autosavePeriod == 0) { // Paper
+-            this.playerList.savePlayers();
++            if (playerSaveInterval > 0 && this.ticks % autosavePeriod == 0) { // Paper // Origami
++            this.playerList.savePlayers(playerSaveInterval); // Origami
+             }// Paper
+             // Paper start
+             for (WorldServer world : getWorlds()) {
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 9382e8f79e8edec8885c629a36e230fbec50e1fb..bb476e3210922221fab899ad4cb7821e997e2162 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -482,6 +482,7 @@ public abstract class PlayerList {
+     protected void savePlayerFile(EntityPlayer entityplayer) {
+         if (!entityplayer.getBukkitEntity().isPersistent()) return; // CraftBukkit
+         if (!entityplayer.didPlayerJoinEvent) return; // Paper - If we never fired PJE, we disconnected during login. Data has not changed, and additionally, our saved vehicle is not loaded! If we save now, we will lose our vehicle (CraftBukkit bug)
++        entityplayer.lastSave = MinecraftServer.currentTick; // Origami
+         this.playerFileData.save(entityplayer);
+         ServerStatisticManager serverstatisticmanager = (ServerStatisticManager) entityplayer.getStatisticManager(); // CraftBukkit
+ 
+@@ -1127,10 +1128,24 @@ public abstract class PlayerList {
+     }
+ 
+     public void savePlayers() {
++        // Origami start
++        savePlayers(null);
++    }
++
++    public void savePlayers(Integer interval) {
++        long now = MinecraftServer.currentTick;
++        // Origami end
+         MCUtil.ensureMain("Save Players" , () -> { // Paper - Ensure main
++        int numSaved = 0; // Origami
+         MinecraftTimings.savePlayers.startTiming(); // Paper
+         for (int i = 0; i < this.players.size(); ++i) {
+-            this.savePlayerFile((EntityPlayer) this.players.get(i));
++            // Origami start - replaced logic
++            EntityPlayer entityplayer = this.players.get(i);
++            if (interval == null || now - entityplayer.lastSave >= interval) {
++                this.savePlayerFile(entityplayer);
++                if (interval != null && ++numSaved <= com.mrivanplays.origami.OrigamiConfig.maxPlayerAutoSavePerTick) { break; };
++            }
++            // Origami end
+         }
+         MinecraftTimings.savePlayers.stopTiming(); // Paper
+         return null; }); // Paper - ensure main

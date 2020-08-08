@@ -5,7 +5,7 @@ Subject: [PATCH] Disable bukkit's anticheat shit
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 488651f2e4d02f5ceed684bd4f77494c16fc6063..182f774485721e484e17076417bf7221ee97e6fb 100644
+index ab621f007366c6c2c2cfd7f57bafbb39c303a549..603e18041063bf9a7b101bfc78e7ab83dd1af29f 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -390,7 +390,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -26,7 +26,7 @@ index 488651f2e4d02f5ceed684bd4f77494c16fc6063..182f774485721e484e17076417bf7221
                      flag1 = true;
                      PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), Math.sqrt(d10));
                  }
-@@ -1070,7 +1070,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1075,7 +1075,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                              if (!this.player.H() && (!this.player.getWorldServer().getGameRules().getBoolean(GameRules.DISABLE_ELYTRA_MOVEMENT_CHECK) || !this.player.isGliding())) {
                                  float f2 = this.player.isGliding() ? 300.0F : 100.0F;
  
@@ -35,7 +35,7 @@ index 488651f2e4d02f5ceed684bd4f77494c16fc6063..182f774485721e484e17076417bf7221
                                  // CraftBukkit end
                                      PlayerConnection.LOGGER.warn("{} moved too quickly! {},{},{}", this.player.getDisplayName().getString(), d7, d8, d9);
                                      this.a(this.player.locX(), this.player.locY(), this.player.locZ(), this.player.yaw, this.player.pitch);
-@@ -1136,7 +1136,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1141,7 +1141,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                              d11 = d7 * d7 + d8 * d8 + d9 * d9;
                              boolean flag1 = false;
  

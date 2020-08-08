@@ -6,10 +6,10 @@ Subject: [PATCH] Reduce memory allocation from crammed entities
 
 diff --git a/src/main/java/com/mrivanplays/origami/CachedLists.java b/src/main/java/com/mrivanplays/origami/CachedLists.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3e4538260ba0cba5443a3556481a5e52a6abc148
+index 0000000000000000000000000000000000000000..b6fb8e2f4905cfeba63a886ff2ce5f4597646717
 --- /dev/null
 +++ b/src/main/java/com/mrivanplays/origami/CachedLists.java
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,34 @@
 +package com.mrivanplays.origami;
 +
 +import net.minecraft.server.Entity;
@@ -39,6 +39,10 @@ index 0000000000000000000000000000000000000000..3e4538260ba0cba5443a3556481a5e52
 +        ((UnsafeList) entityList).setSize(0);
 +        tempGetEntitiesListInUse = false;
 +    }
++
++    public static void reset() {
++        TEMP_GET_ENTITIES_LIST.completeReset();
++    }
 +}
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
 index ea23a75faca30d8c8b213af60006d40c9b6c69f1..931306fd36ed038c856fd6e39abdc2a6d8f17122 100644
@@ -67,6 +71,19 @@ index ea23a75faca30d8c8b213af60006d40c9b6c69f1..931306fd36ed038c856fd6e39abdc2a6
      }
  
      protected void a(AxisAlignedBB axisalignedbb, AxisAlignedBB axisalignedbb1) {
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index f92b8dc02cd32190233cd3c0e818714c1302a010..6a68e3a3bb33815f0092d4f0d4c31289a3c18526 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1264,6 +1264,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         }
+         // Paper end
+ 
++        com.mrivanplays.origami.CachedLists.reset(); // Origami
++
+         // Paper start
+         long endTime = System.nanoTime();
+         long remaining = (TICK_TIME - (endTime - lastTick)) - catchupTime;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
 index 16215ea0605e25929c1c7853f5a988a2ced3cb75..b862c2e48af2f40034270d9551b0683b5d129523 100644
 --- a/src/main/java/net/minecraft/server/World.java

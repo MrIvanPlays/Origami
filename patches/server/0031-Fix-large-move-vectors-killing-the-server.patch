@@ -1,38 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Spottedleaf <spottedleaf@spottedleaf.dev>
 Date: Sat, 8 Aug 2020 18:12:16 +0300
-Subject: [PATCH] Fix large move vectors killing the server and reset the
- CachedList on tick
+Subject: [PATCH] Fix large move vectors killing the server
 
 
-diff --git a/src/main/java/com/mrivanplays/origami/CachedLists.java b/src/main/java/com/mrivanplays/origami/CachedLists.java
-index 3e4538260ba0cba5443a3556481a5e52a6abc148..b6fb8e2f4905cfeba63a886ff2ce5f4597646717 100644
---- a/src/main/java/com/mrivanplays/origami/CachedLists.java
-+++ b/src/main/java/com/mrivanplays/origami/CachedLists.java
-@@ -27,4 +27,8 @@ public class CachedLists {
-         ((UnsafeList) entityList).setSize(0);
-         tempGetEntitiesListInUse = false;
-     }
-+
-+    public static void reset() {
-+        TEMP_GET_ENTITIES_LIST.completeReset();
-+    }
- }
-diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index f92b8dc02cd32190233cd3c0e818714c1302a010..6a68e3a3bb33815f0092d4f0d4c31289a3c18526 100644
---- a/src/main/java/net/minecraft/server/MinecraftServer.java
-+++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1264,6 +1264,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
-         }
-         // Paper end
- 
-+        com.mrivanplays.origami.CachedLists.reset(); // Origami
-+
-         // Paper start
-         long endTime = System.nanoTime();
-         long remaining = (TICK_TIME - (endTime - lastTick)) - catchupTime;
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 3074a136568f3a0c937c252ad1aaf9edf2b4b7d5..488651f2e4d02f5ceed684bd4f77494c16fc6063 100644
+index 3074a136568f3a0c937c252ad1aaf9edf2b4b7d5..ab621f007366c6c2c2cfd7f57bafbb39c303a549 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -338,19 +338,24 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -67,3 +40,17 @@ index 3074a136568f3a0c937c252ad1aaf9edf2b4b7d5..488651f2e4d02f5ceed684bd4f77494c
  
  
                  // CraftBukkit start - handle custom speeds and skipped ticks
+@@ -1023,7 +1028,12 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                         double d8 = d5 - this.m;
+                         double d9 = d6 - this.n;
+                         double d10 = this.player.getMot().g();
+-                        double d11 = d7 * d7 + d8 * d8 + d9 * d9;
++                        // Origami start
++                        double currDeltaX = toX - prevX;
++                        double currDeltaY = toY - prevY;
++                        double currDeltaZ = toZ - prevZ;
++                        double d11 = Math.max(d7 * d7 + d8 * d8 + d9 * d9, (currDeltaX * currDeltaX + currDeltaY * currDeltaY + currDeltaZ * currDeltaZ) - 1);
++                        // Origami end
+ 
+                         if (this.player.isSleeping()) {
+                             if (d11 > 1.0D) {

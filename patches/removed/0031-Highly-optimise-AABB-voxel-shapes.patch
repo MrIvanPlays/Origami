@@ -628,7 +628,7 @@ index 3074a136568f3a0c937c252ad1aaf9edf2b4b7d5..488651f2e4d02f5ceed684bd4f77494c
 -                double d0 = entity.locX();
 -                double d1 = entity.locY();
 -                double d2 = entity.locZ();
--                double d3 = packetplayinvehiclemove.getX();
+-                double d3 = packetplayinvehiclemove.getX();+
 -                double d4 = packetplayinvehiclemove.getY();
 -                double d5 = packetplayinvehiclemove.getZ();
 +                double d0 = entity.locX(); double fromX = d0; // Origami - OBFHELPER

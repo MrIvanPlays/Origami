@@ -63,7 +63,7 @@ index 6a68e3a3bb33815f0092d4f0d4c31289a3c18526..e6d621c972bf8e13d1a55d6a9140d464
              // Paper start
              for (WorldServer world : getWorlds()) {
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 9382e8f79e8edec8885c629a36e230fbec50e1fb..bb476e3210922221fab899ad4cb7821e997e2162 100644
+index 9382e8f79e8edec8885c629a36e230fbec50e1fb..f2ac0c3195cd15c0ea1a3bd261bc92730ede2d13 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -482,6 +482,7 @@ public abstract class PlayerList {
@@ -74,27 +74,25 @@ index 9382e8f79e8edec8885c629a36e230fbec50e1fb..bb476e3210922221fab899ad4cb7821e
          this.playerFileData.save(entityplayer);
          ServerStatisticManager serverstatisticmanager = (ServerStatisticManager) entityplayer.getStatisticManager(); // CraftBukkit
  
-@@ -1127,10 +1128,24 @@ public abstract class PlayerList {
+@@ -1127,10 +1128,22 @@ public abstract class PlayerList {
      }
  
      public void savePlayers() {
-+        // Origami start
++        // Origami start - incremental player saving
 +        savePlayers(null);
 +    }
 +
 +    public void savePlayers(Integer interval) {
-+        long now = MinecraftServer.currentTick;
-+        // Origami end
          MCUtil.ensureMain("Save Players" , () -> { // Paper - Ensure main
-+        int numSaved = 0; // Origami
          MinecraftTimings.savePlayers.startTiming(); // Paper
++        int numSaved = 0;
++        long now = MinecraftServer.currentTick;
          for (int i = 0; i < this.players.size(); ++i) {
 -            this.savePlayerFile((EntityPlayer) this.players.get(i));
-+            // Origami start - replaced logic
 +            EntityPlayer entityplayer = this.players.get(i);
 +            if (interval == null || now - entityplayer.lastSave >= interval) {
 +                this.savePlayerFile(entityplayer);
-+                if (interval != null && ++numSaved <= com.mrivanplays.origami.OrigamiConfig.maxPlayerAutoSavePerTick) { break; };
++                if (interval != null && ++numSaved <= com.mrivanplays.origami.OrigamiConfig.maxPlayerAutoSavePerTick) { break; }
 +            }
 +            // Origami end
          }

@@ -19,7 +19,7 @@ index 40f826409b71d840cd21cb9bae43d60dad0f8182..f386e89735bcd9d3623c22ff0cc7cfe2
 +    }
  }
 diff --git a/src/main/java/net/minecraft/server/ItemBlock.java b/src/main/java/net/minecraft/server/ItemBlock.java
-index 63d2294da4f0da628e62b782b71e34cb3eb959b5..8a6278f3c383134c14c8b2cf9dbf2f73d147c570 100644
+index 2e3e373dedcf1c358da061c82ada8faf902421fb..eaea8b03613af6d358b7b9d1a874e8d66d450c80 100644
 --- a/src/main/java/net/minecraft/server/ItemBlock.java
 +++ b/src/main/java/net/minecraft/server/ItemBlock.java
 @@ -62,6 +62,7 @@ public class ItemBlock extends Item {
